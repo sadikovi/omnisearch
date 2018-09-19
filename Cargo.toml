@@ -1,0 +1,15 @@
+[package]
+name = "algs"
+version = "0.1.0"
+license = "MIT"
+description = "Atom package with livegrep functionality"
+authors = [
+  "Ivan Sadikov <ivan.sadikov@gmail.com>"
+]
+readme = "README.md"
+homepage = "https://github.com/sadikovi/atom-livegrep"
+repository = "https://github.com/sadikovi/atom-livegrep"
+keywords = ["atom", "livegrep"]
+
+[dependencies]
+grep = "0.2"
