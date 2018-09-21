@@ -1,2 +1,2 @@
-# atom-livegrep
-Atom package with livegrep functionality
+# omnisearch
+Atom search with livegrep functionality

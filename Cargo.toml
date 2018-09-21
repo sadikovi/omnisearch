@@ -1,15 +1,15 @@
 [package]
-name = "algs"
+name = "omnisearch"
 version = "0.1.0"
 license = "MIT"
-description = "Atom package with livegrep functionality"
+description = "Atom search with livegrep functionality"
 authors = [
   "Ivan Sadikov <ivan.sadikov@gmail.com>"
 ]
 readme = "README.md"
-homepage = "https://github.com/sadikovi/atom-livegrep"
-repository = "https://github.com/sadikovi/atom-livegrep"
-keywords = ["atom", "livegrep"]
+homepage = "https://github.com/sadikovi/omnisearch"
+repository = "https://github.com/sadikovi/omnisearch"
+keywords = ["atom", "search", "livegrep"]
 
 [dependencies]
 grep = "0.2"
