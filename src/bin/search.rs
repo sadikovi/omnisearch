@@ -9,7 +9,7 @@ use grep::regex::RegexMatcher;
 use grep::searcher::{Searcher, SearcherBuilder, Sink, SinkContext, SinkFinish, SinkMatch};
 
 fn main() {
-  let pattern = "IS";
+  let pattern = "Software";
   let matcher = RegexMatcher::new_line_matcher(pattern).unwrap();
   let mut searcher = SearcherBuilder::new()
     .line_number(true)
@@ -20,7 +20,7 @@ fn main() {
 
   let sink = TestSink::new();
 
-  let path = path::Path::new("/Users/sadikovi/developer/atom-livegrep/LICENSE");
+  let path = path::Path::new("/Users/sadikovi/developer/omnisearch/LICENSE");
   println!("Start search");
   searcher.search_path(matcher, path, sink).unwrap();
   println!("Finish search");
@@ -57,7 +57,7 @@ impl Sink for TestSink {
   }
 
   fn context_break(&mut self, src: &Searcher) -> Result<bool, io::Error> {
-    println!("context break!");
+    println!("== [context break!] ==");
     Ok(true)
   }
 
