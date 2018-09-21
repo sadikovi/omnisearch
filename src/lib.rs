@@ -7,3 +7,10 @@
 // we can quickly discard directories where we know search query would return nothing.
 
 extern crate grep;
+extern crate ignore;
+
+// We need:
+// - list of supported extensions
+// - configuration struct
+
+const SUPPORTED_EXTENSIONS: [&str; 2] = [".scala", ".java"];

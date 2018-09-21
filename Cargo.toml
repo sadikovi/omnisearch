@@ -13,3 +13,4 @@ keywords = ["atom", "search", "livegrep"]
 
 [dependencies]
 grep = "0.2"
+ignore = "0.4"
