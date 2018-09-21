@@ -133,10 +133,10 @@ struct QueryResultGroup {
 
 fn main() {
   let args = Args {
-    root: "/Users/sadikovi/developer/riff".to_owned(),
+    root: "/Users/sadikovi/developer/spark".to_owned(),
     pattern: "val path =".to_owned(),
     max_context_size: 2,
-    ext: vec![FileExt::Scala]
+    ext: vec![FileExt::Scala, FileExt::Java]
   };
 
   let walk = WalkBuilder::new(args.root())
