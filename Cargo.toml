@@ -15,3 +15,4 @@ keywords = ["atom", "search", "livegrep"]
 crossbeam-channel = "0.2"
 grep = "0.2"
 ignore = "0.4"
+regex = "1"

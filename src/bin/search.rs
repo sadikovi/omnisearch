@@ -4,7 +4,6 @@ use std::io;
 use std::path;
 use std::str;
 
-
 use grep::regex::RegexMatcher;
 use grep::searcher::{Searcher, SearcherBuilder, Sink, SinkContext, SinkFinish, SinkMatch};
 

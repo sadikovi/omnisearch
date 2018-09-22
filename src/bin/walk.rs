@@ -1,6 +1,7 @@
 extern crate crossbeam_channel as channel;
 extern crate grep;
 extern crate ignore;
+extern crate regex;
 
 use std::fmt;
 use std::io;
@@ -11,48 +12,159 @@ use std::thread;
 use grep::regex::RegexMatcher;
 use grep::searcher::*;
 use ignore::{WalkBuilder, WalkState};
+use regex::RegexBuilder;
 
-#[derive(Clone, Debug)]
-pub struct Args {
-  root: String,
-  pattern: String,
-  max_context_size: usize
+const SEARCH_CONTEXT_BEFORE: usize = 2;
+const SEARCH_CONTEXT_AFTER: usize = 2;
+// Should be greater than SEARCH_CONTEXT_BEFORE + SEARCH_CONTEXT_AFTER + 1
+const CHANNEL_SINK_ITEMS_START_CAPACITY: usize = 8;
+// We do not expect more than 32 matches per file, in general
+const CHANNEL_SINK_MATCHES_START_CAPACITY: usize = 32;
+
+/*
+".bzl":         "python",
+".c":           "c",
+".coffee":      "coffeescript",
+".cpp":         "cpp",
+".css":         "css",
+".go":          "go",
+".h":           "cpp",
+".html":        "markup",
+".java":        "java",
+".js":          "javascript",
+".json":        "json",
+".jsx":         "jsx",
+".m":           "objectivec",
+".markdown":    "markdown",
+".md":          "markdown",
+".php":         "php",
+".pl":          "perl",
+".proto":       "go",
+".py":          "python",
+".pyst":        "python",
+".rb":          "ruby",
+".rs":          "rust",
+".scala":       "scala",
+".scss":        "scss",
+".sh":          "bash",
+".sql":         "sql",
+".swift":       "swift",
+".tsx":         "tsx",
+".xml":         "markup",
+".yaml":        "yaml",
+".yml":         "yaml",
+*/
+
+fn is_supported_extension(ext: Option<&str>) -> bool {
+  // TODO: implement full extension support.
+  match ext {
+    Some(value) => value == "scala" || value == "java",
+    None => false
+  }
 }
 
-impl Args {
-  #[inline]
-  pub fn root(&self) -> &str {
-    self.root.as_ref()
+#[derive(Clone, Copy, Debug, PartialEq)]
+enum ContentItemKind {
+  Match,
+  Before,
+  After
+}
+
+#[derive(Clone, Debug)]
+struct ContentItem {
+  kind: ContentItemKind,
+  line_num: u64,
+  bytes: Vec<u8>
+}
+
+impl ContentItem {
+  fn new(kind: ContentItemKind, line_num: Option<u64>, bytes: &[u8]) -> Self {
+    Self {
+      kind: kind,
+      line_num: line_num.unwrap_or(0),
+      bytes: bytes.to_vec()
+    }
   }
 
   #[inline]
-  pub fn pattern(&self) -> &str {
-    self.pattern.as_ref()
+  fn kind(&self) -> ContentItemKind {
+    self.kind
   }
+}
 
-  #[inline]
-  pub fn max_context_size(&self) -> usize {
-    self.max_context_size
+impl fmt::Display for ContentItem {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    match self.kind() {
+      ContentItemKind::Before => {
+        write!(f, "==> {}: {}", self.line_num, str::from_utf8(&self.bytes).unwrap())
+      },
+      ContentItemKind::Match => {
+        write!(f, "[!] {}: {}", self.line_num, str::from_utf8(&self.bytes).unwrap())
+      },
+      ContentItemKind::After => {
+        write!(f, "<== {}: {}", self.line_num, str::from_utf8(&self.bytes).unwrap())
+      }
+    }
   }
 }
 
 #[derive(Clone, Debug)]
-struct ChannelSink {
-  sx: channel::Sender<QueryResult>,
+struct ContentMatch {
+  items: Vec<ContentItem>
+}
+
+impl fmt::Display for ContentMatch {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    writeln!(f, "------------------------")?;
+    for item in &self.items[..] {
+      item.fmt(f)?;
+    }
+    writeln!(f, "------------------------")
+  }
+}
+
+#[derive(Clone, Debug)]
+struct ContentSearch {
   path: String,
-  items: Vec<QueryItem>,
-  matches: Vec<QueryMatch>
+  matches: Vec<ContentMatch>
 }
 
-impl ChannelSink {
-  pub fn new(sx: channel::Sender<QueryResult>, path: String) -> Self {
+impl fmt::Display for ContentSearch {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    writeln!(f, "### Path: {}", self.path)?;
+    for mat in &self.matches[..] {
+      mat.fmt(f)?;
+    }
+    writeln!(f, "")
+  }
+}
+
+#[derive(Clone, Debug)]
+struct FileSearch {
+  path: String
+}
+
+// Example of data structure that will be returned as an outcome of the search.
+struct SearchResult {
+  files: Vec<FileSearch>,
+  content: Vec<ContentSearch>
+}
+
+#[derive(Clone, Debug)]
+struct ContentSink {
+  sx: channel::Sender<ContentSearch>,
+  path: String,
+  items: Vec<ContentItem>,
+  matches: Vec<ContentMatch>
+}
+
+impl ContentSink {
+  fn new(sx: channel::Sender<ContentSearch>, path: String) -> Self {
     Self {
       sx: sx,
       path: path,
-      // we keep "context * 2 + match" values
-      items: Vec::with_capacity(8),
-      // generally we do not expect more than 30 matches per file
-      matches: Vec::with_capacity(32)
+      items: Vec::with_capacity(CHANNEL_SINK_ITEMS_START_CAPACITY),
+      matches: Vec::with_capacity(CHANNEL_SINK_MATCHES_START_CAPACITY)
     }
   }
 
@@ -66,12 +178,12 @@ impl ChannelSink {
       match_items.push(item);
     }
     match_items.reverse();
-    let query_match = QueryMatch { items: match_items };
+    let query_match = ContentMatch { items: match_items };
     self.matches.push(query_match);
   }
 }
 
-impl Sink for ChannelSink {
+impl Sink for ContentSink {
   type Error = io::Error;
 
   fn matched(&mut self, _: &Searcher, mat: &SinkMatch) -> Result<bool, io::Error> {
@@ -79,14 +191,15 @@ impl Sink for ChannelSink {
     // considered a new query match and should be flushed.
     let should_flush = self.items.last()
       .map(|prev| {
-        prev.kind() == QueryItemKind::Match || prev.kind() == QueryItemKind::After
+        prev.kind() == ContentItemKind::Match || prev.kind() == ContentItemKind::After
       })
       .unwrap_or(false);
     if should_flush {
       self.flush_items();
     }
 
-    let item = QueryItem::new(QueryItemKind::Match, mat.line_number(), mat.bytes());
+    // TODO: handle long lines
+    let item = ContentItem::new(ContentItemKind::Match, mat.line_number(), mat.bytes());
     self.items.push(item);
     Ok(true)
   }
@@ -96,22 +209,22 @@ impl Sink for ChannelSink {
       SinkContextKind::Before => {
         let should_flush = self.items.last()
           .map(|prev| {
-            prev.kind() == QueryItemKind::Match || prev.kind() == QueryItemKind::After
+            prev.kind() == ContentItemKind::Match || prev.kind() == ContentItemKind::After
           })
           .unwrap_or(false);
         if should_flush {
           self.flush_items();
         }
 
-        let item = QueryItem::new(QueryItemKind::Before, ctx.line_number(), ctx.bytes());
+        let item = ContentItem::new(ContentItemKind::Before, ctx.line_number(), ctx.bytes());
         self.items.push(item);
       },
       SinkContextKind::After => {
         if let Some(prev) = self.items.last() {
           // should never happen
-          assert!(prev.kind() != QueryItemKind::Before, "Kind cannot be Before");
+          assert!(prev.kind() != ContentItemKind::Before, "Kind cannot be Before");
         }
-        let item = QueryItem::new(QueryItemKind::After, ctx.line_number(), ctx.bytes());
+        let item = ContentItem::new(ContentItemKind::After, ctx.line_number(), ctx.bytes());
         self.items.push(item);
       },
       // pass-through case
@@ -129,7 +242,7 @@ impl Sink for ChannelSink {
       }
       // Make sure matches are in order from top to bottom of the file
       matches.reverse();
-      let result = QueryResult {
+      let result = ContentSearch {
         path: self.path.clone(),
         matches: matches
       };
@@ -139,138 +252,73 @@ impl Sink for ChannelSink {
   }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub enum QueryItemKind {
-  Match,
-  Before,
-  After
-}
-
-#[derive(Clone, Debug)]
-pub struct QueryItem {
-  kind: QueryItemKind,
-  line_num: u64,
-  bytes: Vec<u8>
-}
-
-impl QueryItem {
-  pub fn new(kind: QueryItemKind, line_num: Option<u64>, bytes: &[u8]) -> Self {
-    // TODO: handle long lines
-    Self {
-      kind: kind,
-      line_num: line_num.unwrap_or(0),
-      bytes: bytes.to_vec()
-    }
-  }
-
-  #[inline]
-  pub fn kind(&self) -> QueryItemKind {
-    self.kind
-  }
-
-  #[inline]
-  pub fn is_match(&self) -> bool {
-    self.kind == QueryItemKind::Match
-  }
-}
-
-impl fmt::Display for QueryItem {
-  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    match self.kind() {
-      QueryItemKind::Before => {
-        write!(f, "==> {}: {}", self.line_num, str::from_utf8(&self.bytes).unwrap_or("Error\n"))
-      },
-      QueryItemKind::Match => {
-        write!(f, "[!] {}: {}", self.line_num, str::from_utf8(&self.bytes).unwrap_or("Error\n"))
-      },
-      QueryItemKind::After => {
-        write!(f, "<== {}: {}", self.line_num, str::from_utf8(&self.bytes).unwrap_or("Error\n"))
-      }
-    }
-  }
-}
-
-#[derive(Clone, Debug)]
-struct QueryMatch {
-  items: Vec<QueryItem>
-}
-
-impl fmt::Display for QueryMatch {
-  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    writeln!(f, "------------------------")?;
-    for item in &self.items[..] {
-      item.fmt(f)?;
-    }
-    writeln!(f, "------------------------")
-  }
-}
-
-#[derive(Clone, Debug)]
-struct QueryResult {
-  path: String,
-  matches: Vec<QueryMatch>
-}
-
-impl fmt::Display for QueryResult {
-  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    writeln!(f, "### Path: {}", self.path)?;
-    for mat in &self.matches[..] {
-      mat.fmt(f)?;
-    }
-    writeln!(f, "")
-  }
-}
-
 fn main() {
-  let args = Args {
-    root: "/Users/sadikovi/developer/spark".to_owned(),
-    pattern: "execution".to_owned(),
-    max_context_size: 2
-  };
+  let root = "/Users/sadikovi/developer/spark";
+  let pattern = "execution";
 
-  let walk = WalkBuilder::new(args.root())
+  let walker = WalkBuilder::new(root)
     .follow_links(false)
     .standard_filters(true)
     .same_file_system(true)
     .build_parallel();
+  let searcher = SearcherBuilder::new()
+    .line_number(true)
+    .before_context(SEARCH_CONTEXT_BEFORE)
+    .after_context(SEARCH_CONTEXT_AFTER)
+    .multi_line(false)
+    .build();
+  let content_matcher = RegexMatcher::new_line_matcher(pattern)
+    .unwrap();
+  let file_matcher = RegexBuilder::new(pattern)
+    .case_insensitive(true)
+    .multi_line(false)
+    .build()
+    .unwrap();
 
-  let (sx, rx) = channel::unbounded::<QueryResult>();
+  let (csx, crx) = channel::unbounded::<ContentSearch>();
+  let (fsx, frx) = channel::unbounded::<FileSearch>();
 
-  let stdout_thread = thread::spawn(move || {
+  let files_thread = thread::spawn(move || {
     let mut stdout = io::BufWriter::new(io::stdout());
-    for result in rx {
+    for result in frx {
+      stdout.write(result.path.as_bytes()).unwrap();
+      stdout.write(b"\n").unwrap();
+    }
+  });
+
+  let content_thread = thread::spawn(move || {
+    let mut stdout = io::BufWriter::new(io::stdout());
+    for result in crx {
       stdout.write(result.to_string().as_bytes()).unwrap();
       stdout.write(b"\n").unwrap();
     }
   });
 
-  walk.run(|| {
-    let sx = sx.clone();
-    let args = args.clone();
-
-    let matcher = RegexMatcher::new_line_matcher(args.pattern()).unwrap();
-    let searcher = SearcherBuilder::new()
-      .line_number(true)
-      .before_context(args.max_context_size())
-      .after_context(args.max_context_size())
-      .multi_line(false)
-      .build();
+  walker.run(|| {
+    let csx = csx.clone();
+    let fsx = fsx.clone();
+    let searcher = searcher.clone();
+    let content_matcher = content_matcher.clone();
+    let file_matcher = file_matcher.clone();
 
     Box::new(move |res| {
-      if let Ok(dir) = res {
-        if let Some(ftype) = dir.file_type() {
-          if ftype.is_file() {
-            // TODO: add check on supported extensions
-            let sink = ChannelSink::new(
-              sx.clone(),
-              dir.path().to_str().unwrap().to_owned()
-            );
+      if let Ok(inode) = res {
+        let is_file = inode.file_type().map(|ftype| ftype.is_file()).unwrap_or(false);
+        if is_file && inode.path().to_str().is_some() {
+          let fpath = inode.path().to_str().unwrap();
+          let fname = inode.file_name().to_str().unwrap();
 
-            searcher.clone().search_path(
-              matcher.clone(),
-              dir.path(),
-              sink
-            ).unwrap();
+          // Search if file name matches pattern
+          if file_matcher.is_match(fname) {
+            fsx.send(FileSearch { path: fpath.to_owned() })
+          }
+
+          let ext = inode.path().extension().and_then(|os| os.to_str());
+          if is_supported_extension(ext) {
+            let mut searcher = searcher.clone();
+            let matcher = content_matcher.clone();
+            let sink = ContentSink::new(csx.clone(), fpath.to_owned());
+            searcher.search_path(matcher, inode.path(), sink).unwrap();
           }
         }
       }
@@ -278,6 +326,8 @@ fn main() {
     })
   });
 
-  drop(sx);
-  stdout_thread.join().unwrap();
+  drop(csx);
+  content_thread.join().unwrap();
+  drop(fsx);
+  files_thread.join().unwrap();
 }
