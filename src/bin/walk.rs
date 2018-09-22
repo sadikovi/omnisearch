@@ -2,40 +2,21 @@ extern crate crossbeam_channel as channel;
 extern crate grep;
 extern crate ignore;
 
+use std::fmt;
 use std::io;
 use std::io::Write;
-use std::path::Path;
+use std::str;
 use std::thread;
 
 use grep::regex::RegexMatcher;
-use grep::searcher::{Searcher, SearcherBuilder, Sink, SinkContext, SinkFinish, SinkMatch};
-use ignore::{DirEntry, WalkBuilder, WalkState};
-
-// Supported file extensions
-#[derive(Clone, Copy, Debug)]
-pub enum FileExt {
-  Scala,
-  Java,
-  Rust
-}
-
-impl FileExt {
-  #[inline]
-  pub fn has_ext(&self, file_name: &str) -> bool {
-    match self {
-      FileExt::Scala => file_name.ends_with(".scala"),
-      FileExt::Java => file_name.ends_with(".java"),
-      FileExt::Rust => file_name.ends_with(".rs")
-    }
-  }
-}
+use grep::searcher::*;
+use ignore::{WalkBuilder, WalkState};
 
 #[derive(Clone, Debug)]
 pub struct Args {
   root: String,
   pattern: String,
-  max_context_size: usize,
-  ext: Vec<FileExt>
+  max_context_size: usize
 }
 
 impl Args {
@@ -53,32 +34,40 @@ impl Args {
   pub fn max_context_size(&self) -> usize {
     self.max_context_size
   }
-
-  #[inline]
-  pub fn has_ext(&self, file_name: &str) -> bool {
-    for ext in &self.ext[..] {
-      if ext.has_ext(file_name) {
-        return true;
-      }
-    }
-    false
-  }
 }
 
 #[derive(Clone, Debug)]
 struct ChannelSink {
-  sx: channel::Sender<QueryResultGroup>,
+  sx: channel::Sender<QueryResult>,
   path: String,
-  items: Vec<QueryItem>
+  items: Vec<QueryItem>,
+  matches: Vec<QueryMatch>
 }
 
 impl ChannelSink {
-  pub fn new(sx: channel::Sender<QueryResultGroup>, path: String) -> Self {
+  pub fn new(sx: channel::Sender<QueryResult>, path: String) -> Self {
     Self {
       sx: sx,
       path: path,
-      items: Vec::new()
+      // we keep "context * 2 + match" values
+      items: Vec::with_capacity(8),
+      // generally we do not expect more than 30 matches per file
+      matches: Vec::with_capacity(32)
     }
+  }
+
+  #[inline]
+  fn flush_items(&mut self) {
+    // assert!(self.items.len() <= 8);
+    // assert!(self.matches.len() <= 30);
+    // close previous match
+    let mut match_items = Vec::with_capacity(self.items.len());
+    while let Some(item) = self.items.pop() {
+      match_items.push(item);
+    }
+    match_items.reverse();
+    let query_match = QueryMatch { items: match_items };
+    self.matches.push(query_match);
   }
 }
 
@@ -86,57 +75,157 @@ impl Sink for ChannelSink {
   type Error = io::Error;
 
   fn matched(&mut self, _: &Searcher, mat: &SinkMatch) -> Result<bool, io::Error> {
-    let item = QueryItem {
-      line_num: mat.line_number().unwrap_or(0),
-      bytes: mat.bytes().to_vec()
-    };
+    // we do not support multi-line matches; every match that precedes the match is
+    // considered a new query match and should be flushed.
+    let should_flush = self.items.last()
+      .map(|prev| {
+        prev.kind() == QueryItemKind::Match || prev.kind() == QueryItemKind::After
+      })
+      .unwrap_or(false);
+    if should_flush {
+      self.flush_items();
+    }
+
+    let item = QueryItem::new(QueryItemKind::Match, mat.line_number(), mat.bytes());
     self.items.push(item);
     Ok(true)
   }
 
   fn context(&mut self, _: &Searcher, ctx: &SinkContext) -> Result<bool, io::Error> {
-    let item = QueryItem {
-      line_num: ctx.line_number().unwrap_or(0),
-      bytes: ctx.bytes().to_vec()
-    };
-    self.items.push(item);
+    match ctx.kind() {
+      SinkContextKind::Before => {
+        let should_flush = self.items.last()
+          .map(|prev| {
+            prev.kind() == QueryItemKind::Match || prev.kind() == QueryItemKind::After
+          })
+          .unwrap_or(false);
+        if should_flush {
+          self.flush_items();
+        }
+
+        let item = QueryItem::new(QueryItemKind::Before, ctx.line_number(), ctx.bytes());
+        self.items.push(item);
+      },
+      SinkContextKind::After => {
+        if let Some(prev) = self.items.last() {
+          // should never happen
+          assert!(prev.kind() != QueryItemKind::Before, "Kind cannot be Before");
+        }
+        let item = QueryItem::new(QueryItemKind::After, ctx.line_number(), ctx.bytes());
+        self.items.push(item);
+      },
+      // pass-through case
+      _ => {}
+    }
     Ok(true)
   }
 
   fn finish(&mut self, _: &Searcher, _: &SinkFinish) -> Result<(), Self::Error> {
-    let group = QueryResultGroup {
-      path: self.path.clone(),
-      results: Vec::new()
-    };
-    self.sx.send(group);
+    if self.items.len() > 0 || self.matches.len() > 0 {
+      self.flush_items();
+      let mut matches = Vec::with_capacity(self.matches.len());
+      while let Some(mat) = self.matches.pop() {
+        matches.push(mat);
+      }
+      // Make sure matches are in order from top to bottom of the file
+      matches.reverse();
+      let result = QueryResult {
+        path: self.path.clone(),
+        matches: matches
+      };
+      self.sx.send(result);
+    }
     Ok(())
   }
 }
 
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum QueryItemKind {
+  Match,
+  Before,
+  After
+}
+
 #[derive(Clone, Debug)]
-struct QueryItem {
+pub struct QueryItem {
+  kind: QueryItemKind,
   line_num: u64,
   bytes: Vec<u8>
 }
 
-#[derive(Clone, Debug)]
-struct QueryResult {
-  items: Vec<QueryItem>,
-  matched_idx: usize
+impl QueryItem {
+  pub fn new(kind: QueryItemKind, line_num: Option<u64>, bytes: &[u8]) -> Self {
+    // TODO: handle long lines
+    Self {
+      kind: kind,
+      line_num: line_num.unwrap_or(0),
+      bytes: bytes.to_vec()
+    }
+  }
+
+  #[inline]
+  pub fn kind(&self) -> QueryItemKind {
+    self.kind
+  }
+
+  #[inline]
+  pub fn is_match(&self) -> bool {
+    self.kind == QueryItemKind::Match
+  }
+}
+
+impl fmt::Display for QueryItem {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    match self.kind() {
+      QueryItemKind::Before => {
+        write!(f, "==> {}: {}", self.line_num, str::from_utf8(&self.bytes).unwrap_or("Error\n"))
+      },
+      QueryItemKind::Match => {
+        write!(f, "[!] {}: {}", self.line_num, str::from_utf8(&self.bytes).unwrap_or("Error\n"))
+      },
+      QueryItemKind::After => {
+        write!(f, "<== {}: {}", self.line_num, str::from_utf8(&self.bytes).unwrap_or("Error\n"))
+      }
+    }
+  }
 }
 
 #[derive(Clone, Debug)]
-struct QueryResultGroup {
+struct QueryMatch {
+  items: Vec<QueryItem>
+}
+
+impl fmt::Display for QueryMatch {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    writeln!(f, "------------------------")?;
+    for item in &self.items[..] {
+      item.fmt(f)?;
+    }
+    writeln!(f, "------------------------")
+  }
+}
+
+#[derive(Clone, Debug)]
+struct QueryResult {
   path: String,
-  results: Vec<QueryResult>
+  matches: Vec<QueryMatch>
+}
+
+impl fmt::Display for QueryResult {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    writeln!(f, "### Path: {}", self.path)?;
+    for mat in &self.matches[..] {
+      mat.fmt(f)?;
+    }
+    writeln!(f, "")
+  }
 }
 
 fn main() {
   let args = Args {
     root: "/Users/sadikovi/developer/spark".to_owned(),
-    pattern: "val path =".to_owned(),
-    max_context_size: 2,
-    ext: vec![FileExt::Scala, FileExt::Java]
+    pattern: "execution".to_owned(),
+    max_context_size: 2
   };
 
   let walk = WalkBuilder::new(args.root())
@@ -145,12 +234,12 @@ fn main() {
     .same_file_system(true)
     .build_parallel();
 
-  let (sx, rx) = channel::unbounded::<QueryResultGroup>();
+  let (sx, rx) = channel::unbounded::<QueryResult>();
 
   let stdout_thread = thread::spawn(move || {
     let mut stdout = io::BufWriter::new(io::stdout());
-    for dir in rx {
-      stdout.write(dir.path.as_bytes()).unwrap();
+    for result in rx {
+      stdout.write(result.to_string().as_bytes()).unwrap();
       stdout.write(b"\n").unwrap();
     }
   });
@@ -170,7 +259,8 @@ fn main() {
     Box::new(move |res| {
       if let Ok(dir) = res {
         if let Some(ftype) = dir.file_type() {
-          if ftype.is_file() && args.has_ext(dir.file_name().to_str().unwrap_or("")) {
+          if ftype.is_file() {
+            // TODO: add check on supported extensions
             let sink = ChannelSink::new(
               sx.clone(),
               dir.path().to_str().unwrap().to_owned()
