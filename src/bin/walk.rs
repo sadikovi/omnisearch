@@ -3,6 +3,7 @@ extern crate grep;
 extern crate ignore;
 extern crate regex;
 
+use std::collections;
 use std::fmt;
 use std::io;
 use std::io::Write;
@@ -21,45 +22,55 @@ const CHANNEL_SINK_ITEMS_START_CAPACITY: usize = 8;
 // We do not expect more than 32 matches per file, in general
 const CHANNEL_SINK_MATCHES_START_CAPACITY: usize = 32;
 
-/*
-".bzl":         "python",
-".c":           "c",
-".coffee":      "coffeescript",
-".cpp":         "cpp",
-".css":         "css",
-".go":          "go",
-".h":           "cpp",
-".html":        "markup",
-".java":        "java",
-".js":          "javascript",
-".json":        "json",
-".jsx":         "jsx",
-".m":           "objectivec",
-".markdown":    "markdown",
-".md":          "markdown",
-".php":         "php",
-".pl":          "perl",
-".proto":       "go",
-".py":          "python",
-".pyst":        "python",
-".rb":          "ruby",
-".rs":          "rust",
-".scala":       "scala",
-".scss":        "scss",
-".sh":          "bash",
-".sql":         "sql",
-".swift":       "swift",
-".tsx":         "tsx",
-".xml":         "markup",
-".yaml":        "yaml",
-".yml":         "yaml",
-*/
+struct FileExt {
+  extensions: collections::HashSet<&'static str>
+}
 
-fn is_supported_extension(ext: Option<&str>) -> bool {
-  // TODO: implement full extension support.
-  match ext {
-    Some(value) => value == "scala" || value == "java",
-    None => false
+impl FileExt {
+  fn new() -> Self {
+    let mut set = collections::HashSet::new();
+    set.insert("bzl");
+    set.insert("c");
+    set.insert("coffee");
+    set.insert("cpp");
+    set.insert("css");
+    set.insert("go");
+    set.insert("h");
+    set.insert("html");
+    set.insert("java");
+    set.insert("js");
+    set.insert("json");
+    set.insert("jsx");
+    set.insert("m");
+    set.insert("markdown");
+    set.insert("md");
+    set.insert("php");
+    set.insert("pl");
+    set.insert("proto");
+    set.insert("py");
+    set.insert("pyst");
+    set.insert("rb");
+    set.insert("rs");
+    set.insert("scala");
+    set.insert("scss");
+    set.insert("sh");
+    set.insert("sql");
+    set.insert("swift");
+    set.insert("tsx");
+    set.insert("xml");
+    set.insert("yaml");
+    set.insert("yml");
+
+    Self {
+      extensions: set
+    }
+  }
+
+  fn is_supported_extension(&self, ext: Option<&str>) -> bool {
+    match ext {
+      Some(value) => self.extensions.contains(value),
+      None => false
+    }
   }
 }
 
@@ -297,9 +308,10 @@ fn main() {
   walker.run(|| {
     let csx = csx.clone();
     let fsx = fsx.clone();
-    let searcher = searcher.clone();
+    let mut searcher = searcher.clone();
     let content_matcher = content_matcher.clone();
     let file_matcher = file_matcher.clone();
+    let file_ext = FileExt::new();
 
     Box::new(move |res| {
       if let Ok(inode) = res {
@@ -314,8 +326,7 @@ fn main() {
           }
 
           let ext = inode.path().extension().and_then(|os| os.to_str());
-          if is_supported_extension(ext) {
-            let mut searcher = searcher.clone();
+          if file_ext.is_supported_extension(ext) {
             let matcher = content_matcher.clone();
             let sink = ContentSink::new(csx.clone(), fpath.to_owned());
             searcher.search_path(matcher, inode.path(), sink).unwrap();
