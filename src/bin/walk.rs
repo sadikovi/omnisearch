@@ -145,7 +145,7 @@ struct ContentSearch {
 
 impl fmt::Display for ContentSearch {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    writeln!(f, "### Path: {}", self.path)?;
+    writeln!(f, "# Path: {}", self.path)?;
     for mat in &self.matches[..] {
       mat.fmt(f)?;
     }
@@ -190,8 +190,6 @@ impl ContentSink {
 
   #[inline]
   fn flush_items(&mut self) {
-    // assert!(self.items.len() <= 8);
-    // assert!(self.matches.len() <= 30);
     // close previous match
     let mut match_items = Vec::with_capacity(self.items.len());
     while let Some(item) = self.items.pop() {
@@ -207,22 +205,7 @@ impl Sink for ContentSink {
   type Error = io::Error;
 
   fn matched(&mut self, _: &Searcher, mat: &SinkMatch) -> Result<bool, io::Error> {
-    let prev_counter = self.counter.fetch_add(1, Ordering::Relaxed);
-    if prev_counter > CONTENT_SEARCH_LIMIT + 1 {
-      return Ok(false);
-    }
-
-    // we do not support multi-line matches; every match that precedes the match is
-    // considered a new query match and should be flushed.
-    let should_flush = self.items.last()
-      .map(|prev| {
-        prev.kind() == ContentItemKind::Match || prev.kind() == ContentItemKind::After
-      })
-      .unwrap_or(false);
-    if should_flush {
-      self.flush_items();
-    }
-
+    self.counter.fetch_add(1, Ordering::Relaxed);
     // TODO: handle long lines
     let item = ContentItem::new(ContentItemKind::Match, mat.line_number(), mat.bytes());
     self.items.push(item);
@@ -232,31 +215,33 @@ impl Sink for ContentSink {
   fn context(&mut self, _: &Searcher, ctx: &SinkContext) -> Result<bool, io::Error> {
     match ctx.kind() {
       SinkContextKind::Before => {
-        let should_flush = self.items.last()
-          .map(|prev| {
-            prev.kind() == ContentItemKind::Match ||
-              prev.kind() == ContentItemKind::After
-          })
-          .unwrap_or(false);
-        if should_flush {
-          self.flush_items();
-        }
-
-        let item =
-          ContentItem::new(ContentItemKind::Before, ctx.line_number(), ctx.bytes());
+        let item = ContentItem::new(
+          ContentItemKind::Before,
+          ctx.line_number(),
+          ctx.bytes()
+        );
         self.items.push(item);
       },
       SinkContextKind::After => {
-        if let Some(prev) = self.items.last() {
-          // should never happen
-          assert!(prev.kind() != ContentItemKind::Before, "Kind cannot be Before");
-        }
-        let item =
-          ContentItem::new(ContentItemKind::After, ctx.line_number(), ctx.bytes());
+        let item = ContentItem::new(
+          ContentItemKind::After,
+          ctx.line_number(),
+          ctx.bytes()
+        );
         self.items.push(item);
       },
       // pass-through case
       _ => {}
+    }
+    Ok(true)
+  }
+
+  fn context_break(&mut self, _: &Searcher) -> Result<bool, io::Error> {
+    if self.counter.load(Ordering::Relaxed) > CONTENT_SEARCH_LIMIT + 1 {
+      return Ok(false);
+    }
+    if self.items.len() > 0 {
+      self.flush_items();
     }
     Ok(true)
   }
@@ -353,7 +338,7 @@ fn main() {
 
           let ext = inode.path().extension().and_then(|os| os.to_str());
           if file_ext.is_supported_extension(ext) {
-            if content_counter.fetch_add(1, Ordering::Relaxed) <= CONTENT_SEARCH_LIMIT + 1 {
+            if content_counter.load(Ordering::Relaxed) <= CONTENT_SEARCH_LIMIT + 1 {
               let matcher = content_matcher.clone();
               let sink = ContentSink::new(csx.clone(), content_counter.clone(), fpath.to_owned());
               searcher.search_path(matcher, inode.path(), sink).unwrap();
@@ -376,6 +361,8 @@ fn main() {
   drop(fsx);
   let files = files_thread.join().unwrap();
 
-  println!("content ({}): {:?}", content.len(), content);
+  for c in content {
+    println!("{}", c);
+  }
   println!("files ({}): {:?}", files.len(), files);
 }

@@ -8,19 +8,19 @@ use grep::regex::RegexMatcher;
 use grep::searcher::{Searcher, SearcherBuilder, Sink, SinkContext, SinkFinish, SinkMatch};
 
 fn main() {
-  let pattern = "execution";
+  let pattern = "of";
   let matcher = RegexMatcher::new_line_matcher(pattern).unwrap();
   let mut searcher = SearcherBuilder::new()
     .line_number(true)
-    .before_context(3)
-    .after_context(3)
-    .multi_line(true)
+    .before_context(2)
+    .after_context(2)
+    .multi_line(false)
     .build();
 
   let sink = TestSink::new();
 
-  // let path = path::Path::new("/Users/sadikovi/developer/omnisearch/LICENSE");
-  let path = path::Path::new("/Users/sadikovi/developer/spark/pom.xml");
+  let path = path::Path::new("/Users/sadikovi/developer/omnisearch/test.txt");
+  // let path = path::Path::new("/Users/sadikovi/developer/spark/pom.xml");
   println!("Start search");
   searcher.search_path(matcher, path, sink).unwrap();
   println!("Finish search");
