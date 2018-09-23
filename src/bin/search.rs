@@ -8,7 +8,7 @@ use grep::regex::RegexMatcher;
 use grep::searcher::{Searcher, SearcherBuilder, Sink, SinkContext, SinkFinish, SinkMatch};
 
 fn main() {
-  let pattern = "Software";
+  let pattern = "execution";
   let matcher = RegexMatcher::new_line_matcher(pattern).unwrap();
   let mut searcher = SearcherBuilder::new()
     .line_number(true)
@@ -19,7 +19,8 @@ fn main() {
 
   let sink = TestSink::new();
 
-  let path = path::Path::new("/Users/sadikovi/developer/omnisearch/LICENSE");
+  // let path = path::Path::new("/Users/sadikovi/developer/omnisearch/LICENSE");
+  let path = path::Path::new("/Users/sadikovi/developer/spark/pom.xml");
   println!("Start search");
   searcher.search_path(matcher, path, sink).unwrap();
   println!("Finish search");
@@ -38,20 +39,12 @@ impl Sink for TestSink {
   type Error = io::Error;
 
   fn matched(&mut self, _src: &Searcher, mat: &SinkMatch) -> Result<bool, io::Error> {
-    println!("== New result ==");
-    println!("line num: {:?}", mat.line_number());
-    let mut iter = mat.lines();
-    while let Some(line) = iter.next() {
-      println!("offset: {:?}", mat.absolute_byte_offset());
-      println!("line: {:?}", str::from_utf8(line).unwrap());
-    }
+    println!("match [{:?}]: {:?}", mat.line_number(), str::from_utf8(mat.bytes()).unwrap());
     Ok(true)
   }
 
   fn context(&mut self, _src: &Searcher, ctx: &SinkContext) -> Result<bool, io::Error> {
-    println!("context line num: {:?}", ctx.line_number());
-    println!("context kind: {:?}", ctx.kind());
-    println!("context line: {:?}", str::from_utf8(ctx.bytes()).unwrap());
+    println!("context {:?} [{:?}]: {:?}", ctx.kind(), ctx.line_number(), str::from_utf8(ctx.bytes()).unwrap());
     Ok(true)
   }
 

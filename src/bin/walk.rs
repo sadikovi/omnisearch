@@ -6,8 +6,9 @@ extern crate regex;
 use std::collections;
 use std::fmt;
 use std::io;
-use std::io::Write;
 use std::str;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::thread;
 
 use grep::regex::RegexMatcher;
@@ -166,15 +167,21 @@ struct SearchResult {
 #[derive(Clone, Debug)]
 struct ContentSink {
   sx: channel::Sender<ContentSearch>,
+  counter: Arc<AtomicUsize>,
   path: String,
   items: Vec<ContentItem>,
   matches: Vec<ContentMatch>
 }
 
 impl ContentSink {
-  fn new(sx: channel::Sender<ContentSearch>, path: String) -> Self {
+  fn new(
+    sx: channel::Sender<ContentSearch>,
+    counter: Arc<AtomicUsize>,
+    path: String
+  ) -> Self {
     Self {
       sx: sx,
+      counter: counter,
       path: path,
       items: Vec::with_capacity(CHANNEL_SINK_ITEMS_START_CAPACITY),
       matches: Vec::with_capacity(CHANNEL_SINK_MATCHES_START_CAPACITY)
@@ -200,6 +207,11 @@ impl Sink for ContentSink {
   type Error = io::Error;
 
   fn matched(&mut self, _: &Searcher, mat: &SinkMatch) -> Result<bool, io::Error> {
+    let prev_counter = self.counter.fetch_add(1, Ordering::Relaxed);
+    if prev_counter > CONTENT_SEARCH_LIMIT + 1 {
+      return Ok(false);
+    }
+
     // we do not support multi-line matches; every match that precedes the match is
     // considered a new query match and should be flushed.
     let should_flush = self.items.last()
@@ -295,20 +307,23 @@ fn main() {
   let (fsx, frx) = channel::unbounded::<FileSearch>();
 
   let files_thread = thread::spawn(move || {
-    let mut stdout = io::BufWriter::new(io::stdout());
+    let mut vec = Vec::new();
     for result in frx {
-      stdout.write(result.path.as_bytes()).unwrap();
-      stdout.write(b"\n").unwrap();
+      vec.push(result);
     }
+    vec
   });
 
   let content_thread = thread::spawn(move || {
-    let mut stdout = io::BufWriter::new(io::stdout());
+    let mut vec = Vec::new();
     for result in crx {
-      stdout.write(result.to_string().as_bytes()).unwrap();
-      stdout.write(b"\n").unwrap();
+      vec.push(result);
     }
+    vec
   });
+
+  let file_counter = Arc::new(AtomicUsize::new(0));
+  let content_counter = Arc::new(AtomicUsize::new(0));
 
   walker.run(|| {
     let csx = csx.clone();
@@ -316,7 +331,11 @@ fn main() {
     let mut searcher = searcher.clone();
     let content_matcher = content_matcher.clone();
     let file_matcher = file_matcher.clone();
+    // Creates a copy per thread
     let file_ext = FileExt::new();
+
+    let file_counter = file_counter.clone();
+    let content_counter = content_counter.clone();
 
     Box::new(move |res| {
       if let Ok(inode) = res {
@@ -327,23 +346,36 @@ fn main() {
 
           // Search if file name matches pattern
           if file_matcher.is_match(fname) {
-            fsx.send(FileSearch { path: fpath.to_owned() })
+            if file_counter.fetch_add(1, Ordering::Relaxed) <= FILE_SEARCH_LIMIT + 1 {
+              fsx.send(FileSearch { path: fpath.to_owned() });
+            }
           }
 
           let ext = inode.path().extension().and_then(|os| os.to_str());
           if file_ext.is_supported_extension(ext) {
-            let matcher = content_matcher.clone();
-            let sink = ContentSink::new(csx.clone(), fpath.to_owned());
-            searcher.search_path(matcher, inode.path(), sink).unwrap();
+            if content_counter.fetch_add(1, Ordering::Relaxed) <= CONTENT_SEARCH_LIMIT + 1 {
+              let matcher = content_matcher.clone();
+              let sink = ContentSink::new(csx.clone(), content_counter.clone(), fpath.to_owned());
+              searcher.search_path(matcher, inode.path(), sink).unwrap();
+            }
           }
         }
       }
-      WalkState::Continue
+
+      if file_counter.load(Ordering::Relaxed) > FILE_SEARCH_LIMIT + 1 &&
+          content_counter.load(Ordering::Relaxed) > CONTENT_SEARCH_LIMIT + 1 {
+        WalkState::Quit
+      } else {
+        WalkState::Continue
+      }
     })
   });
 
   drop(csx);
-  content_thread.join().unwrap();
+  let content = content_thread.join().unwrap();
   drop(fsx);
-  files_thread.join().unwrap();
+  let files = files_thread.join().unwrap();
+
+  println!("content ({}): {:?}", content.len(), content);
+  println!("files ({}): {:?}", files.len(), files);
 }
