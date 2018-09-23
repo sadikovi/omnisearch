@@ -21,6 +21,8 @@ const SEARCH_CONTEXT_AFTER: usize = 2;
 const CHANNEL_SINK_ITEMS_START_CAPACITY: usize = 8;
 // We do not expect more than 32 matches per file, in general
 const CHANNEL_SINK_MATCHES_START_CAPACITY: usize = 32;
+const FILE_SEARCH_LIMIT: usize = 30;
+const CONTENT_SEARCH_LIMIT: usize = 100;
 
 struct FileExt {
   extensions: collections::HashSet<&'static str>
@@ -220,14 +222,16 @@ impl Sink for ContentSink {
       SinkContextKind::Before => {
         let should_flush = self.items.last()
           .map(|prev| {
-            prev.kind() == ContentItemKind::Match || prev.kind() == ContentItemKind::After
+            prev.kind() == ContentItemKind::Match ||
+              prev.kind() == ContentItemKind::After
           })
           .unwrap_or(false);
         if should_flush {
           self.flush_items();
         }
 
-        let item = ContentItem::new(ContentItemKind::Before, ctx.line_number(), ctx.bytes());
+        let item =
+          ContentItem::new(ContentItemKind::Before, ctx.line_number(), ctx.bytes());
         self.items.push(item);
       },
       SinkContextKind::After => {
@@ -235,7 +239,8 @@ impl Sink for ContentSink {
           // should never happen
           assert!(prev.kind() != ContentItemKind::Before, "Kind cannot be Before");
         }
-        let item = ContentItem::new(ContentItemKind::After, ctx.line_number(), ctx.bytes());
+        let item =
+          ContentItem::new(ContentItemKind::After, ctx.line_number(), ctx.bytes());
         self.items.push(item);
       },
       // pass-through case
