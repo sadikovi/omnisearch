@@ -8,7 +8,7 @@ use grep::regex::RegexMatcher;
 use grep::searcher::{Searcher, SearcherBuilder, Sink, SinkContext, SinkFinish, SinkMatch};
 
 fn main() {
-  let pattern = "of";
+  let pattern = "the";
   let matcher = RegexMatcher::new_line_matcher(pattern).unwrap();
   let mut searcher = SearcherBuilder::new()
     .line_number(true)
@@ -19,7 +19,7 @@ fn main() {
 
   let sink = TestSink::new();
 
-  let path = path::Path::new("/Users/sadikovi/developer/omnisearch/test.txt");
+  let path = path::Path::new("/Users/sadikovi/developer/omnisearch/LICENSE");
   // let path = path::Path::new("/Users/sadikovi/developer/spark/pom.xml");
   println!("Start search");
   searcher.search_path(matcher, path, sink).unwrap();
@@ -39,12 +39,12 @@ impl Sink for TestSink {
   type Error = io::Error;
 
   fn matched(&mut self, _src: &Searcher, mat: &SinkMatch) -> Result<bool, io::Error> {
-    println!("match [{:?}]: {:?}", mat.line_number(), str::from_utf8(mat.bytes()).unwrap());
+    println!("match {:?} [{}]: {:?}", mat.line_number(), mat.absolute_byte_offset(), str::from_utf8(mat.bytes()).unwrap());
     Ok(true)
   }
 
   fn context(&mut self, _src: &Searcher, ctx: &SinkContext) -> Result<bool, io::Error> {
-    println!("context {:?} [{:?}]: {:?}", ctx.kind(), ctx.line_number(), str::from_utf8(ctx.bytes()).unwrap());
+    println!("context {:?} {:?} [{}]: {:?}", ctx.kind(), ctx.line_number(), ctx.absolute_byte_offset(), str::from_utf8(ctx.bytes()).unwrap());
     Ok(true)
   }
 

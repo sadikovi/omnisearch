@@ -25,6 +25,12 @@ const CHANNEL_SINK_MATCHES_START_CAPACITY: usize = 32;
 const FILE_SEARCH_LIMIT: usize = 30;
 const CONTENT_SEARCH_LIMIT: usize = 100;
 
+const MAX_LINE_PREFIX_LENGTH: usize = 187;
+const MAX_LINE_SUFFIX_LENGTH: usize = 10;
+const LINE_GAP_LENGTH: usize = 3;
+const LINE_GAP_CHARS: [u8; 3] = [b'.', b'.', b'.'];
+const MAX_LINE_LENGTH: usize = MAX_LINE_PREFIX_LENGTH + MAX_LINE_SUFFIX_LENGTH + LINE_GAP_LENGTH;
+
 struct FileExt {
   extensions: collections::HashSet<&'static str>
 }
@@ -88,15 +94,29 @@ enum ContentItemKind {
 struct ContentItem {
   kind: ContentItemKind,
   line_num: u64,
-  bytes: Vec<u8>
+  bytes: Vec<u8>,
+  is_truncated: bool
 }
 
 impl ContentItem {
   fn new(kind: ContentItemKind, line_num: Option<u64>, bytes: &[u8]) -> Self {
+    let len = bytes.len();
+    let (all_bytes, is_truncated) = if len < MAX_LINE_LENGTH {
+      (bytes.to_vec(), false)
+    } else {
+      let mut vec = Vec::with_capacity(MAX_LINE_LENGTH);
+      vec.extend_from_slice(&bytes[..MAX_LINE_PREFIX_LENGTH]);
+      vec.extend_from_slice(&LINE_GAP_CHARS);
+      vec.extend_from_slice(&bytes[len - MAX_LINE_SUFFIX_LENGTH..len]);
+      // mat.bytes()[MAX_LINE_PREFIX_LENGTH + LINE_GAP_LENGTH..];
+      (vec, true)
+    };
+
     Self {
       kind: kind,
       line_num: line_num.unwrap_or(0),
-      bytes: bytes.to_vec()
+      bytes: all_bytes,
+      is_truncated: is_truncated
     }
   }
 
@@ -206,7 +226,6 @@ impl Sink for ContentSink {
 
   fn matched(&mut self, _: &Searcher, mat: &SinkMatch) -> Result<bool, io::Error> {
     self.counter.fetch_add(1, Ordering::Relaxed);
-    // TODO: handle long lines
     let item = ContentItem::new(ContentItemKind::Match, mat.line_number(), mat.bytes());
     self.items.push(item);
     Ok(true)
