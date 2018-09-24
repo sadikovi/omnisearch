@@ -256,7 +256,7 @@ impl Sink for ContentSink {
   }
 
   fn context_break(&mut self, _: &Searcher) -> Result<bool, io::Error> {
-    if self.counter.load(Ordering::Relaxed) > CONTENT_SEARCH_LIMIT + 1 {
+    if self.counter.load(Ordering::Relaxed) > CONTENT_SEARCH_LIMIT {
       return Ok(false);
     }
     if self.items.len() > 0 {
@@ -350,14 +350,14 @@ fn main() {
 
           // Search if file name matches pattern
           if file_matcher.is_match(fname) {
-            if file_counter.fetch_add(1, Ordering::Relaxed) <= FILE_SEARCH_LIMIT + 1 {
+            if file_counter.fetch_add(1, Ordering::Relaxed) <= FILE_SEARCH_LIMIT {
               fsx.send(FileSearch { path: fpath.to_owned() });
             }
           }
 
           let ext = inode.path().extension().and_then(|os| os.to_str());
           if file_ext.is_supported_extension(ext) {
-            if content_counter.load(Ordering::Relaxed) <= CONTENT_SEARCH_LIMIT + 1 {
+            if content_counter.load(Ordering::Relaxed) <= CONTENT_SEARCH_LIMIT {
               let matcher = content_matcher.clone();
               let sink = ContentSink::new(csx.clone(), content_counter.clone(), fpath.to_owned());
               searcher.search_path(matcher, inode.path(), sink).unwrap();
@@ -366,8 +366,8 @@ fn main() {
         }
       }
 
-      if file_counter.load(Ordering::Relaxed) > FILE_SEARCH_LIMIT + 1 &&
-          content_counter.load(Ordering::Relaxed) > CONTENT_SEARCH_LIMIT + 1 {
+      if file_counter.load(Ordering::Relaxed) > FILE_SEARCH_LIMIT &&
+          content_counter.load(Ordering::Relaxed) > CONTENT_SEARCH_LIMIT {
         WalkState::Quit
       } else {
         WalkState::Continue
@@ -383,6 +383,7 @@ fn main() {
   for c in content {
     println!("{}", c);
   }
+  println!("Files {}", files.len());
   for f in files {
     println!("{}", f.path);
   }
