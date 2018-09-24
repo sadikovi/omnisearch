@@ -25,8 +25,8 @@ const CHANNEL_SINK_MATCHES_START_CAPACITY: usize = 32;
 const FILE_SEARCH_LIMIT: usize = 30;
 const CONTENT_SEARCH_LIMIT: usize = 100;
 
-const MAX_LINE_PREFIX_LENGTH: usize = 187;
-const MAX_LINE_SUFFIX_LENGTH: usize = 10;
+const MAX_LINE_PREFIX_LENGTH: usize = 122;
+const MAX_LINE_SUFFIX_LENGTH: usize = 15;
 const LINE_GAP_LENGTH: usize = 3;
 const LINE_GAP_CHARS: [u8; 3] = [b'.', b'.', b'.'];
 const MAX_LINE_LENGTH: usize = MAX_LINE_PREFIX_LENGTH + MAX_LINE_SUFFIX_LENGTH + LINE_GAP_LENGTH;
