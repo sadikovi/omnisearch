@@ -23,7 +23,7 @@ const CHANNEL_SINK_ITEMS_START_CAPACITY: usize = 8;
 // We do not expect more than 32 matches per file, in general
 const CHANNEL_SINK_MATCHES_START_CAPACITY: usize = 32;
 const FILE_SEARCH_LIMIT: usize = 30;
-const CONTENT_SEARCH_LIMIT: usize = 100;
+const CONTENT_SEARCH_LIMIT: usize = 200;
 
 const MAX_LINE_PREFIX_LENGTH: usize = 122;
 const MAX_LINE_SUFFIX_LENGTH: usize = 15;
@@ -383,5 +383,7 @@ fn main() {
   for c in content {
     println!("{}", c);
   }
-  println!("files ({}): {:?}", files.len(), files);
+  for f in files {
+    println!("{}", f.path);
+  }
 }
