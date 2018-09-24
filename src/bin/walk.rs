@@ -33,47 +33,53 @@ const MAX_LINE_LENGTH: usize =
   MAX_LINE_PREFIX_LENGTH + MAX_LINE_SUFFIX_LENGTH + LINE_GAP_LENGTH;
 
 struct FileExt {
-  extensions: collections::HashSet<&'static str>
+  extensions: collections::HashSet<String>
 }
 
 impl FileExt {
   fn new() -> Self {
-    let mut set = collections::HashSet::new();
-    set.insert("bzl");
-    set.insert("c");
-    set.insert("coffee");
-    set.insert("cpp");
-    set.insert("css");
-    set.insert("go");
-    set.insert("h");
-    set.insert("html");
-    set.insert("java");
-    set.insert("js");
-    set.insert("json");
-    set.insert("jsx");
-    set.insert("m");
-    set.insert("markdown");
-    set.insert("md");
-    set.insert("php");
-    set.insert("pl");
-    set.insert("proto");
-    set.insert("py");
-    set.insert("pyst");
-    set.insert("rb");
-    set.insert("rs");
-    set.insert("scala");
-    set.insert("scss");
-    set.insert("sh");
-    set.insert("sql");
-    set.insert("swift");
-    set.insert("tsx");
-    set.insert("xml");
-    set.insert("yaml");
-    set.insert("yml");
+    let vec = vec![
+      "bzl".to_owned(),
+      "c".to_owned(),
+      "coffee".to_owned(),
+      "cpp".to_owned(),
+      "css".to_owned(),
+      "go".to_owned(),
+      "h".to_owned(),
+      "html".to_owned(),
+      "java".to_owned(),
+      "js".to_owned(),
+      "json".to_owned(),
+      "jsx".to_owned(),
+      "m".to_owned(),
+      "markdown".to_owned(),
+      "md".to_owned(),
+      "php".to_owned(),
+      "pl".to_owned(),
+      "proto".to_owned(),
+      "py".to_owned(),
+      "pyst".to_owned(),
+      "rb".to_owned(),
+      "rs".to_owned(),
+      "scala".to_owned(),
+      "scss".to_owned(),
+      "sh".to_owned(),
+      "sql".to_owned(),
+      "swift".to_owned(),
+      "tsx".to_owned(),
+      "xml".to_owned(),
+      "yaml".to_owned(),
+      "yml".to_owned()
+    ];
+    Self::with_extensions(vec)
+  }
 
-    Self {
-      extensions: set
+  fn with_extensions(extensions: Vec<String>) -> Self {
+    let mut set = collections::HashSet::new();
+    for ext in extensions {
+      set.insert(ext);
     }
+    Self { extensions: set }
   }
 
   fn is_supported_extension(&self, ext: Option<&str>) -> bool {
@@ -109,7 +115,6 @@ impl ContentItem {
       vec.extend_from_slice(&bytes[..MAX_LINE_PREFIX_LENGTH]);
       vec.extend_from_slice(&LINE_GAP_CHARS);
       vec.extend_from_slice(&bytes[len - MAX_LINE_SUFFIX_LENGTH..len]);
-      // mat.bytes()[MAX_LINE_PREFIX_LENGTH + LINE_GAP_LENGTH..];
       (vec, true)
     };
 
@@ -161,12 +166,13 @@ impl fmt::Display for ContentMatch {
 #[derive(Clone, Debug)]
 struct ContentSearch {
   path: String,
+  ext: Option<String>,
   matches: Vec<ContentMatch>
 }
 
 impl fmt::Display for ContentSearch {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    writeln!(f, "# Path: {}", self.path)?;
+    writeln!(f, "# Path: {} [{:?}]", self.path, self.ext)?;
     for mat in &self.matches[..] {
       mat.fmt(f)?;
     }
@@ -176,7 +182,8 @@ impl fmt::Display for ContentSearch {
 
 #[derive(Clone, Debug)]
 struct FileSearch {
-  path: String
+  path: String,
+  ext: Option<String>
 }
 
 // Example of data structure that will be returned as an outcome of the search.
@@ -190,6 +197,7 @@ struct ContentSink {
   sx: channel::Sender<ContentSearch>,
   counter: Arc<AtomicUsize>,
   path: String,
+  ext: Option<String>,
   items: Vec<ContentItem>,
   matches: Vec<ContentMatch>
 }
@@ -198,12 +206,14 @@ impl ContentSink {
   fn new(
     sx: channel::Sender<ContentSearch>,
     counter: Arc<AtomicUsize>,
-    path: String
+    path: String,
+    ext: Option<String>
   ) -> Self {
     Self {
       sx: sx,
       counter: counter,
       path: path,
+      ext: ext,
       items: Vec::with_capacity(CHANNEL_SINK_ITEMS_START_CAPACITY),
       matches: Vec::with_capacity(CHANNEL_SINK_MATCHES_START_CAPACITY)
     }
@@ -277,6 +287,7 @@ impl Sink for ContentSink {
       matches.reverse();
       let result = ContentSearch {
         path: self.path.clone(),
+        ext: self.ext.clone(),
         matches: matches
       };
       self.sx.send(result);
@@ -348,22 +359,26 @@ fn main() {
         if is_file && inode.path().to_str().is_some() {
           let fpath = inode.path().to_str().unwrap();
           let fname = inode.file_name().to_str().unwrap();
+          let ext = inode.path().extension().and_then(|os| os.to_str());
 
           // Search if file name matches pattern
           if file_matcher.is_match(fname) {
             if file_counter.fetch_add(1, Ordering::Relaxed) <= FILE_SEARCH_LIMIT {
-              fsx.send(FileSearch { path: fpath.to_owned() });
+              fsx.send(FileSearch {
+                path: fpath.to_owned(),
+                ext: ext.map(|s| s.to_owned())
+              });
             }
           }
 
-          let ext = inode.path().extension().and_then(|os| os.to_str());
           if file_ext.is_supported_extension(ext) {
             if content_counter.load(Ordering::Relaxed) <= CONTENT_SEARCH_LIMIT {
               let matcher = content_matcher.clone();
               let sink = ContentSink::new(
                 csx.clone(),
                 content_counter.clone(),
-                fpath.to_owned()
+                fpath.to_owned(),
+                ext.map(|s| s.to_owned())
               );
               searcher.search_path(matcher, inode.path(), sink).unwrap();
             }
@@ -390,6 +405,6 @@ fn main() {
   }
   println!("Files {}", files.len());
   for f in files {
-    println!("{}", f.path);
+    println!("{} [{:?}]", f.path, f.ext);
   }
 }
