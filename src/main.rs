@@ -3,7 +3,8 @@ extern crate grep;
 extern crate ignore;
 extern crate regex;
 
-mod ext;
+pub mod ext;
+pub mod types;
 
 use std::collections;
 use std::fmt;
