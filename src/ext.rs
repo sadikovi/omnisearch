@@ -2,6 +2,8 @@ use std::collections;
 use std::fmt;
 use std::str;
 
+use errors;
+
 /// Enumeration for all text-based supported file extensions.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Extension {
@@ -36,7 +38,8 @@ pub enum Extension {
   TSX,
   XML,
   YAML,
-  YML
+  YML,
+  UNKNOWN
 }
 
 impl fmt::Display for Extension {
@@ -73,13 +76,14 @@ impl fmt::Display for Extension {
       Extension::TSX => write!(f, "tsx"),
       Extension::XML => write!(f, "xml"),
       Extension::YAML => write!(f, "yaml"),
-      Extension::YML => write!(f, "yml")
+      Extension::YML => write!(f, "yml"),
+      Extension::UNKNOWN => write!(f, "<unknown>")
     }
   }
 }
 
 impl str::FromStr for Extension {
-  type Err = ParseExtError;
+  type Err = errors::Error;
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
     match s.trim().to_lowercase().as_ref() {
@@ -115,14 +119,10 @@ impl str::FromStr for Extension {
       "xml" => Ok(Extension::XML),
       "yaml" => Ok(Extension::YAML),
       "yml" => Ok(Extension::YML),
-      _ => Err(ParseExtError {})
+      _ => Ok(Extension::UNKNOWN)
     }
   }
 }
-
-/// Error returned if parsing of extension has failed.
-#[derive(Clone, Debug, PartialEq)]
-pub struct ParseExtError { }
 
 /// Container struct to provide methods for checking supported extensions.
 #[derive(Clone, Debug)]
@@ -131,7 +131,7 @@ pub struct Extensions {
 }
 
 impl Extensions {
-  /// Creates new set with all supported extensions.
+  /// Creates new set with all supported extensions, except UNKNOWN.
   pub fn new() -> Self {
     let extensions = vec![
       Extension::BZL,

@@ -4,12 +4,12 @@ use ext::Extension;
 #[derive(Clone, Debug)]
 pub struct FileItem {
   path: String,
-  ext: Option<Extension>
+  ext: Extension
 }
 
 impl FileItem {
   /// Creates new file item from path and file extension.
-  pub fn new(path: String, ext: Option<Extension>) -> Self {
+  pub fn new(path: String, ext: Extension) -> Self {
     Self { path, ext }
   }
 }
@@ -66,12 +66,26 @@ pub struct ContentMatch {
   lines: Vec<ContentLine>
 }
 
+impl ContentMatch {
+  /// Creates a new content match with provided lines.
+  pub fn new(lines: Vec<ContentLine>) -> Self {
+    Self { lines }
+  }
+}
+
 /// Content item that has matches for user's regular expression.
 #[derive(Clone, Debug)]
 pub struct ContentItem {
   path: String,
-  ext: Option<Extension>,
+  ext: Extension,
   matches: Vec<ContentMatch>
+}
+
+impl ContentItem {
+  /// Creates a new content item.
+  pub fn new(path: String, ext: Extension, matches: Vec<ContentMatch>) -> Self {
+    Self { path, ext, matches }
+  }
 }
 
 /// Number of matches found, either exact number (less or equal to) or
