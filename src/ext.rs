@@ -3,9 +3,10 @@ use std::fmt;
 use std::str;
 
 use errors;
+use serde::ser::{Serialize, Serializer};
 
 /// Enumeration for all text-based supported file extensions.
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Deserialize)]
 pub enum Extension {
   BZL,
   C,
@@ -124,10 +125,16 @@ impl str::FromStr for Extension {
   }
 }
 
+impl Serialize for Extension {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
+    serializer.serialize_str(&self.to_string())
+  }
+}
+
 /// Container struct to provide methods for checking supported extensions.
 #[derive(Clone, Debug)]
 pub struct Extensions {
-  set: collections::HashSet<String>
+  set: collections::HashSet<Extension>
 }
 
 impl Extensions {
@@ -174,16 +181,13 @@ impl Extensions {
   pub fn with_extensions(extensions: Vec<Extension>) -> Self {
     let mut set = collections::HashSet::new();
     for ext in extensions {
-      set.insert(ext.to_string());
+      set.insert(ext);
     }
     Self { set }
   }
 
   /// Checks whether or not provided extension is in the set.
-  pub fn is_supported_extension(&self, ext: Option<&str>) -> bool {
-    match ext {
-      Some(value) => self.set.contains(value),
-      None => false
-    }
+  pub fn is_supported_extension(&self, ext: Extension) -> bool {
+    self.set.contains(&ext)
   }
 }

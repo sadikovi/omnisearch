@@ -2,9 +2,12 @@
 
 use std::convert;
 use std::fmt;
+use std::io;
 use std::sync::mpsc;
 
+use grep::regex::{Error as GrepRegexError};
 use grep::searcher::SinkError;
+use regex::{Error as RegexError};
 
 /// General error struct.
 #[derive(Clone, Debug, PartialEq)]
@@ -32,6 +35,24 @@ impl SinkError for Error {
 
 impl<T> convert::From<mpsc::SendError<T>> for Error {
   fn from(value: mpsc::SendError<T>) -> Self {
+    Error::new(value.to_string())
+  }
+}
+
+impl convert::From<io::Error> for Error {
+  fn from(value: io::Error) -> Self {
+    Error::new(value.to_string())
+  }
+}
+
+impl convert::From<GrepRegexError> for Error {
+  fn from(value: GrepRegexError) -> Self {
+    Error::new(value.to_string())
+  }
+}
+
+impl convert::From<RegexError> for Error {
+  fn from(value: RegexError) -> Self {
     Error::new(value.to_string())
   }
 }

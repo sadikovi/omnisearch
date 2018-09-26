@@ -1,13 +1,22 @@
+use std::path::Path;
 use std::sync::{mpsc, Arc};
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::thread;
 
 use errors;
-use ext::Extension;
+use ext::{Extension, Extensions};
+use grep::regex::RegexMatcher;
 use grep::searcher::*;
-use res::{ContentItem, ContentKind, ContentLine, ContentMatch};
+use ignore::{WalkBuilder, WalkState};
+use regex::RegexBuilder;
+use res::*;
 
+// Maximum number of files we collect.
+const FILE_MAX_MATCHES: usize = 20;
 // Maximum number of matches we collect.
 const CONTENT_MAX_MATCHES: usize = 200;
+// Number of lines of context ot fetch.
+const CONTEXT_NUM_LINES: usize = 2;
 
 // Sink implementation for search.
 #[derive(Clone, Debug)]
@@ -109,4 +118,141 @@ impl Sink for Collector {
     }
     Ok(())
   }
+}
+
+// Perform search within provided directory using provided pattern
+pub fn find(
+  dir: &Path,
+  pattern: &str,
+  extensions: Vec<Extension>
+) -> Result<SearchResult, errors::Error> {
+  let dir = dir.canonicalize()?;
+  let path = dir.as_path();
+  if !path.is_dir() {
+    return err!("Path {} is not a directory", path.to_str().unwrap_or(""));
+  }
+
+  // Set of extensions to check against.
+  let ext_check = if extensions.len() > 0 {
+    Extensions::with_extensions(extensions)
+  } else {
+    Extensions::new()
+  };
+
+  let walker = WalkBuilder::new(path)
+    .follow_links(false)
+    .standard_filters(true)
+    .same_file_system(true)
+    .build_parallel();
+
+  let searcher = SearcherBuilder::new()
+    .line_number(true)
+    .before_context(CONTEXT_NUM_LINES)
+    .after_context(CONTEXT_NUM_LINES)
+    .multi_line(false)
+    .build();
+
+  let content_matcher = RegexMatcher::new_line_matcher(pattern)?;
+
+  let file_matcher = RegexBuilder::new(pattern)
+    .case_insensitive(true)
+    .multi_line(false)
+    .build()?;
+
+  let (fsx, frx) = mpsc::channel::<FileItem>();
+  let (csx, crx) = mpsc::channel::<ContentItem>();
+
+  let files_thread = thread::spawn(move || {
+    let mut vec = Vec::new();
+    for result in frx {
+      vec.push(result);
+    }
+    vec
+  });
+
+  let content_thread = thread::spawn(move || {
+    let mut vec = Vec::new();
+    for result in crx {
+      vec.push(result);
+    }
+    vec
+  });
+
+  let content_counter = Arc::new(AtomicUsize::new(0));
+  let file_counter = Arc::new(AtomicUsize::new(0));
+
+  walker.run(|| {
+    let fsx = fsx.clone();
+    let csx = csx.clone();
+    let mut searcher = searcher.clone();
+    let file_matcher = file_matcher.clone();
+    let content_matcher = content_matcher.clone();
+    let ext_check = ext_check.clone();
+
+    let file_counter = file_counter.clone();
+    let content_counter = content_counter.clone();
+
+    Box::new(move |res| {
+      if let Ok(inode) = res {
+        let is_file = inode.file_type().map(|ftype| ftype.is_file()).unwrap_or(false);
+        if is_file && inode.path().to_str().is_some() {
+          // Path and name must exist at this point.
+          let fpath = inode.path().to_str().unwrap();
+          let fname = inode.file_name().to_str().unwrap();
+          // It is okay to unwrap when parsing extension - always returns a valid enum.
+          let ext = inode.path().extension()
+            .and_then(|os| os.to_str())
+            .unwrap_or("")
+            .parse::<Extension>()
+            .unwrap();
+
+          // Search if file name matches pattern.
+          if file_matcher.is_match(fname) {
+            if file_counter.fetch_add(1, Ordering::Relaxed) <= FILE_MAX_MATCHES {
+              let _ = fsx.send(FileItem::new(fpath.to_owned(), ext));
+            }
+          }
+
+          if ext_check.is_supported_extension(ext) {
+            if content_counter.load(Ordering::Relaxed) <= CONTENT_MAX_MATCHES {
+              let matcher = content_matcher.clone();
+              let collector = Collector::new(
+                csx.clone(),
+                content_counter.clone(),
+                fpath.to_owned(),
+                ext
+              );
+              searcher.search_path(matcher, inode.path(), collector).unwrap();
+            }
+          }
+        }
+      }
+
+      if file_counter.load(Ordering::Relaxed) > FILE_MAX_MATCHES &&
+          content_counter.load(Ordering::Relaxed) > CONTENT_MAX_MATCHES {
+        WalkState::Quit
+      } else {
+        WalkState::Continue
+      }
+    })
+  });
+
+  drop(fsx);
+  let files = files_thread.join().unwrap();
+  drop(csx);
+  let content = content_thread.join().unwrap();
+
+  let file_matches = if files.len() <= FILE_MAX_MATCHES {
+    Matched::Exact(files.len())
+  } else {
+    Matched::AtLeast(files.len())
+  };
+
+  let content_matches = if content.len() <= CONTENT_MAX_MATCHES {
+    Matched::Exact(content.len())
+  } else {
+    Matched::AtLeast(content.len())
+  };
+
+  Ok(SearchResult::new(files, file_matches, content, content_matches))
 }
