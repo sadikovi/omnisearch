@@ -27,6 +27,12 @@ macro_rules! err {
   ($fmt:expr, $($args:expr), *) => (Err(errors::Error::new(format!($fmt, $($args), *))));
 }
 
+impl fmt::Display for Error {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    write!(f, "{}", self.msg)
+  }
+}
+
 impl SinkError for Error {
   fn error_message<T: fmt::Display>(message: T) -> Self {
     Self::new(message.to_string())
