@@ -9,7 +9,7 @@ use grep::regex::RegexMatcher;
 use grep::searcher::*;
 use ignore::{WalkBuilder, WalkState};
 use regex::RegexBuilder;
-use res::*;
+use result::*;
 
 // Maximum number of files we collect.
 const FILE_MAX_MATCHES: usize = 20;

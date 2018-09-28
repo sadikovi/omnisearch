@@ -4,13 +4,13 @@ use ext::Extension;
 
 /// Input struct that deserialized from JSON payload.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Params {
+pub struct Options {
   dir: String,
   pattern: String,
   extensions: Option<Vec<String>>
 }
 
-impl Params {
+impl Options {
   /// Returns root directory.
   pub fn dir(&self) -> &Path {
     &Path::new(&self.dir)

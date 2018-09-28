@@ -12,8 +12,8 @@ extern crate serde_derive;
 #[macro_use]
 pub mod errors;
 pub mod ext;
-pub mod args;
-pub mod res;
+pub mod params;
+pub mod result;
 pub mod search;
 
 use futures::{future, Stream};
@@ -25,7 +25,7 @@ use hyper::service::service_fn;
 type BoxFuture = Box<Future<Item=Response<Body>, Error=hyper::Error> + Send>;
 
 /// Function to search and return JSON result.
-fn find(params: args::Params) -> Result<String, errors::Error> {
+fn find(params: params::Options) -> Result<String, errors::Error> {
   let res = search::find(params.dir(), params.pattern(), Vec::new())?;
   json::to_string(&res).map_err(|err| errors::Error::new(err.to_string()))
 }
@@ -38,7 +38,7 @@ fn service(req: Request<Body>) -> BoxFuture {
         .concat2()
         .map(move |chunk| {
           let body = chunk.iter().cloned().collect::<Vec<u8>>();
-          match json::from_slice::<args::Params>(&body) {
+          match json::from_slice::<params::Options>(&body) {
             Ok(params) => {
               match find(params) {
                 Ok(payload) => {
