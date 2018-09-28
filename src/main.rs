@@ -12,12 +12,11 @@ extern crate serde_derive;
 #[macro_use]
 pub mod errors;
 pub mod ext;
+pub mod args;
 pub mod res;
 pub mod search;
 
-use std::path::Path;
-
-use futures::future;
+use futures::{future, Stream};
 use hyper::{Body, Method, Request, Response, Server, StatusCode};
 use hyper::header::CONTENT_TYPE;
 use hyper::rt::Future;
@@ -26,39 +25,53 @@ use hyper::service::service_fn;
 type BoxFuture = Box<Future<Item=Response<Body>, Error=hyper::Error> + Send>;
 
 /// Function to search and return JSON result.
-fn find(dir: &Path, pattern: &str) -> Result<String, errors::Error> {
-  let res = search::find(dir, pattern, Vec::new())?;
+fn find(params: args::Params) -> Result<String, errors::Error> {
+  let res = search::find(params.dir(), params.pattern(), Vec::new())?;
   json::to_string(&res).map_err(|err| errors::Error::new(err.to_string()))
 }
 
 fn service(req: Request<Body>) -> BoxFuture {
-  let mut response = Response::new(Body::empty());
   match (req.method(), req.uri().path()) {
-    (&Method::GET, "/search") => {
-      // TODO: extract parameters from request body
-      let dir = Path::new("/Users/sadikovi/developer/spark");
-      let pattern = "execution";
-
-      match find(dir, pattern) {
-        Ok(payload) => {
-          *response.status_mut() = StatusCode::OK;
-          *response.body_mut() = Body::from(payload);
-          response.headers_mut().insert(
-            CONTENT_TYPE,
-            "application/json".parse().expect("correct content type value")
-          );
-        }
-        Err(error) => {
-          *response.status_mut() = StatusCode::BAD_REQUEST;
-          *response.body_mut() = Body::from(error.to_string());
-        }
-      }
+    (&Method::POST, "/search") => {
+      let response = req
+        .into_body()
+        .concat2()
+        .map(move |chunk| {
+          let body = chunk.iter().cloned().collect::<Vec<u8>>();
+          match json::from_slice::<args::Params>(&body) {
+            Ok(params) => {
+              match find(params) {
+                Ok(payload) => {
+                  let mut response = Response::new(Body::from(payload));
+                  *response.status_mut() = StatusCode::OK;
+                  response.headers_mut().insert(
+                    CONTENT_TYPE,
+                    "application/json".parse().expect("correct content type value")
+                  );
+                  response
+                }
+                Err(error) => {
+                  let mut response = Response::new(Body::from(error.to_string()));
+                  *response.status_mut() = StatusCode::BAD_REQUEST;
+                  response
+                }
+              }
+            },
+            Err(error) => {
+              let mut response = Response::new(Body::from(error.to_string()));
+              *response.status_mut() = StatusCode::BAD_REQUEST;
+              response
+            }
+          }
+        });
+      Box::new(response)
     },
     _ => {
+      let mut response = Response::new(Body::empty());
       *response.status_mut() = StatusCode::NOT_FOUND;
+      Box::new(future::ok(response))
     }
   }
-  Box::new(future::ok(response))
 }
 
 fn main() {
