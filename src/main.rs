@@ -25,7 +25,7 @@ use std::thread;
 use std::time;
 
 use futures::{future, Stream};
-use hyper::{Body, Method, Request, Response, Server, StatusCode};
+use hyper::{Body, Client, Method, Request, Response, Server, StatusCode};
 use hyper::header::CONTENT_TYPE;
 use hyper::rt::Future;
 use hyper::service::service_fn;
@@ -45,6 +45,11 @@ fn find(params: params::QueryParams) -> Result<String, errors::Error> {
 
 fn service(req: Request<Body>) -> BoxFuture {
   match (req.method(), req.uri().path()) {
+    (&Method::GET, "/ping") => {
+      let mut response = Response::new(Body::empty());
+      *response.status_mut() = StatusCode::OK;
+      Box::new(future::ok(response))
+    },
     (&Method::POST, "/search") => {
       let response = req
         .into_body()
@@ -142,12 +147,23 @@ fn save_connection_params(opts: &params::ConnectionParams) -> Option<()> {
   res.ok()
 }
 
+/// Ping the server, returns true if ping was successful.
+fn ping(params: &params::ConnectionParams) -> bool {
+  // TODO: Fix ping function.
+  let client = Client::new();
+  if let Ok(uri) = format!("http://{}/ping", params.address()).parse() {
+    client.get(uri).wait().map(|r| r.status().is_success()).unwrap_or(false)
+  } else {
+    false
+  }
+}
+
 fn main() {
-  match load_connection_params() {
-    Some(params) => {
+  match load_connection_params().as_ref() {
+    Some(ref params) if ping(params) => {
       println!("{}", params.address());
     },
-    None => {
+    _ => {
       let initial_addr = ([127, 0, 0, 1], 0).into();
       let server = Server::bind(&initial_addr)
         .serve(|| service_fn(service));
