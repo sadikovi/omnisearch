@@ -123,54 +123,64 @@ fn with_lock<F, T>(dir: &path::Path, func: F) -> T
 }
 
 /// Load connection parameters, if available.
-fn load_connection_params() -> Option<params::ConnectionParams> {
-  let dir = env::current_dir().expect("Failed to retrieve current dir");
-  let dir = dir.as_path();
-  let res: Result<params::ConnectionParams, errors::Error> = with_lock(dir, || {
-    let bytes = fs::read(dir.join(PARAMS))?;
-    let opts = json::from_slice(&bytes)
-      .map_err(|err| errors::Error::new(err.to_string()))?;
-    Ok(opts)
-  });
-  res.ok()
+fn load_connection_params(dir: &path::Path) -> Option<params::ConnectionParams> {
+  let bytes = fs::read(dir.join(PARAMS)).ok();
+  if let Some(bytes) = bytes {
+    json::from_slice(&bytes).ok()
+  } else {
+    None
+  }
 }
 
 /// Save connection parameters for this process.
-fn save_connection_params(opts: &params::ConnectionParams) -> Option<()> {
-  let dir = env::current_dir().expect("Failed to retrieve current dir");
-  let dir = dir.as_path();
-  let res: Result<(), errors::Error> = with_lock(dir, || {
-    let bytes = json::to_vec(opts).map_err(|err| errors::Error::new(err.to_string()))?;
-    fs::write(dir.join(PARAMS), &bytes)?;
-    Ok(())
-  });
-  res.ok()
+fn save_connection_params(
+  dir: &path::Path,
+  opts: &params::ConnectionParams
+) -> Option<()> {
+  let bytes = json::to_vec(opts).ok();
+  if let Some(bytes) = bytes {
+    fs::write(dir.join(PARAMS), &bytes).ok()
+  } else {
+    None
+  }
 }
 
 /// Ping the server, returns true if ping was successful.
 fn ping(params: &params::ConnectionParams) -> bool {
-  // TODO: Fix ping function.
-  let client = Client::new();
   if let Ok(uri) = format!("http://{}/ping", params.address()).parse() {
-    client.get(uri).wait().map(|r| r.status().is_success()).unwrap_or(false)
+    let client = Client::new();
+    let (tx, rx) = futures::sync::oneshot::channel();
+    let ping = client.get(uri)
+      .map(|r| r.status().is_success())
+      .or_else(|_| Ok(false))
+      .map(|status| tx.send(status).expect("Channel send error"));
+    hyper::rt::spawn(ping);
+    rx.wait().unwrap_or(false)
   } else {
     false
   }
 }
 
 fn main() {
-  match load_connection_params().as_ref() {
-    Some(ref params) if ping(params) => {
-      println!("{}", params.address());
-    },
-    _ => {
-      let initial_addr = ([127, 0, 0, 1], 0).into();
-      let server = Server::bind(&initial_addr)
-        .serve(|| service_fn(service));
-      let opts = params::ConnectionParams::new(server.local_addr(), process::id());
-      save_connection_params(&opts);
-      println!("{}", opts.address());
-      hyper::rt::run(server.map_err(|e| eprintln!("Server error: {}", e)));
-    }
-  }
+  let buf = env::current_dir().expect("Failed to retrieve current dir");
+  hyper::rt::run(hyper::rt::lazy(move || {
+    let dir = buf.as_path();
+    with_lock(dir, || {
+      match load_connection_params(dir).as_ref() {
+        Some(ref params) if ping(params) => {
+          println!("{}", params.address());
+        },
+        _ => {
+          let initial_addr = ([127, 0, 0, 1], 0).into();
+          let server = Server::bind(&initial_addr)
+            .serve(|| service_fn(service));
+          let opts = params::ConnectionParams::new(server.local_addr(), process::id());
+          save_connection_params(dir, &opts);
+          println!("{}", opts.address());
+          hyper::rt::spawn(server.map_err(|e| eprintln!("Server error: {}", e)));
+        }
+      }
+    });
+    Ok(())
+  }));
 }
