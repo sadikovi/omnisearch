@@ -1,4 +1,3 @@
-extern crate crossbeam_channel as channel;
 extern crate futures;
 extern crate grep;
 extern crate hyper;

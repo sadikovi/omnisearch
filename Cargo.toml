@@ -12,7 +12,6 @@ repository = "https://github.com/sadikovi/omnisearch"
 keywords = ["atom", "search", "livegrep"]
 
 [dependencies]
-crossbeam-channel = "0.2"
 futures = "0.1"
 grep = "0.2"
 hyper = "0.12"
