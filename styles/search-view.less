@@ -1,0 +1,39 @@
+@import "ui-variables";
+
+@section-padding: 4 * @component-padding;
+
+.search-view {
+  display: flex;
+  overflow: auto;
+
+  .text {
+    color: @text-color;
+  }
+
+  .section {
+    padding: @section-padding;
+    border-top: 1px solid @base-border-color;
+    &:first-child,
+    &:last-child {
+      padding: @section-padding;
+    }
+    &.section:empty {
+      padding: 0;
+      border-top: none;
+    }
+
+    atom-text-editor[mini] {
+      opacity: .75;
+      .selection .region {
+        background-color: contrast(@input-background-color, lighten(@input-background-color, 8%), darken(@input-background-color, 8%) );
+      }
+    }
+
+    atom-text-editor[mini].is-focused {
+      opacity: 1;
+      .selection .region {
+      background-color: contrast(@input-background-color, lighten(@input-background-color, 12%), darken(@input-background-color, 12%) );
+      }
+    }
+  }
+}

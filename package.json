@@ -15,11 +15,7 @@
   "engines": {
     "atom": ">=1.21.0"
   },
-  "consumedServices": {
-    "status-bar": {
-      "versions": {
-        "^1.0.0": "consumeStatusBar"
-      }
-    }
+  "dependencies": {
+    "marked": "^0.3.6"
   }
 }
