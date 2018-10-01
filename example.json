@@ -1,0 +1,4940 @@
+{
+  "files": [
+    {
+      "path": "/Users/sadikovi/Developer/spark/core/src/main/java/org/apache/spark/JobExecutionStatus.java",
+      "ext": "java"
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/core/src/main/scala/org/apache/spark/memory/ExecutionMemoryPool.scala",
+      "ext": "scala"
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/sql/core/src/test/scala/org/apache/spark/sql/TestQueryExecutionListener.scala",
+      "ext": "scala"
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/sql/core/src/main/scala/org/apache/spark/sql/util/QueryExecutionListener.scala",
+      "ext": "scala"
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/sql/core/src/main/scala/org/apache/spark/sql/execution/QueryExecution.scala",
+      "ext": "scala"
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/sql/core/src/main/scala/org/apache/spark/sql/execution/QueryExecutionException.scala",
+      "ext": "scala"
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/sql/core/src/main/scala/org/apache/spark/sql/execution/SQLExecution.scala",
+      "ext": "scala"
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/sql/core/src/test/scala/org/apache/spark/sql/util/ExecutionListenerManagerSuite.scala",
+      "ext": "scala"
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/sql/core/src/test/scala/org/apache/spark/sql/execution/QueryExecutionSuite.scala",
+      "ext": "scala"
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/sql/core/src/test/scala/org/apache/spark/sql/execution/SQLExecutionSuite.scala",
+      "ext": "scala"
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/sql/core/src/main/scala/org/apache/spark/sql/execution/ui/AllExecutionsPage.scala",
+      "ext": "scala"
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/sql/core/src/main/scala/org/apache/spark/sql/execution/ui/ExecutionPage.scala",
+      "ext": "scala"
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/sql/core/src/main/scala/org/apache/spark/sql/execution/streaming/IncrementalExecution.scala",
+      "ext": "scala"
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/sql/core/src/main/scala/org/apache/spark/sql/execution/streaming/MicroBatchExecution.scala",
+      "ext": "scala"
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/sql/core/src/main/scala/org/apache/spark/sql/execution/streaming/StreamExecution.scala",
+      "ext": "scala"
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/sql/catalyst/src/main/scala/org/apache/spark/sql/catalyst/rules/QueryExecutionMetering.scala",
+      "ext": "scala"
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/sql/core/src/main/scala/org/apache/spark/sql/execution/streaming/continuous/ContinuousExecution.scala",
+      "ext": "scala"
+    }
+  ],
+  "file_matches": {
+    "count": 17,
+    "match": "exact"
+  },
+  "content": [
+    {
+      "path": "/Users/sadikovi/Developer/spark/pom.xml",
+      "ext": "xml",
+      "matches": [
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 224,
+              "bytes": "      things breaking.\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 225,
+              "bytes": "    -->\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 226,
+              "bytes": "    <spark.test.home>${session.executionRootDirectory}</spark.test.home>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 227,
+              "bytes": "\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 228,
+              "bytes": "    <CodeCacheSize>512m</CodeCacheSize>\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 2008,
+              "bytes": "          <artifactId>maven-enforcer-plugin</artifactId>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 2009,
+              "bytes": "          <version>3.0.0-M1</version>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2010,
+              "bytes": "          <executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2011,
+              "bytes": "            <execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2012,
+              "bytes": "              <id>enforce-versions</id>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2013,
+              "bytes": "              <goals>\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 2039,
+              "bytes": "                </rules>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 2040,
+              "bytes": "              </configuration>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2041,
+              "bytes": "            </execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2042,
+              "bytes": "          </executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2043,
+              "bytes": "        </plugin>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2044,
+              "bytes": "        <plugin>\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 2052,
+              "bytes": "          <!-- 3.3.1 won't work with zinc; fails to find javac from java.home -->\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 2053,
+              "bytes": "          <version>3.2.2</version>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2054,
+              "bytes": "          <executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2055,
+              "bytes": "            <execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2056,
+              "bytes": "              <id>eclipse-add-source</id>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2057,
+              "bytes": "              <goals>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 2058,
+              "bytes": "                <goal>add-source</goal>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 2059,
+              "bytes": "              </goals>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2060,
+              "bytes": "            </execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2061,
+              "bytes": "            <execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2062,
+              "bytes": "              <id>scala-compile-first</id>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2063,
+              "bytes": "              <goals>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 2064,
+              "bytes": "                <goal>compile</goal>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 2065,
+              "bytes": "              </goals>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2066,
+              "bytes": "            </execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2067,
+              "bytes": "            <execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2068,
+              "bytes": "              <id>scala-test-compile-first</id>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2069,
+              "bytes": "              <goals>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 2070,
+              "bytes": "                <goal>testCompile</goal>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 2071,
+              "bytes": "              </goals>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2072,
+              "bytes": "            </execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2073,
+              "bytes": "          </executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2074,
+              "bytes": "          <configuration>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2075,
+              "bytes": "            <scalaVersion>${scala.version}</scalaVersion>\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 2157,
+              "bytes": "            <excludedGroups>${test.exclude.tags}</excludedGroups>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 2158,
+              "bytes": "          </configuration>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2159,
+              "bytes": "          <executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2160,
+              "bytes": "            <execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2161,
+              "bytes": "              <id>test</id>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2162,
+              "bytes": "              <goals>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 2163,
+              "bytes": "                <goal>test</goal>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 2164,
+              "bytes": "              </goals>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2165,
+              "bytes": "            </execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2166,
+              "bytes": "          </executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2167,
+              "bytes": "        </plugin>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2168,
+              "bytes": "        <!-- Scalatest runs all Scala tests -->\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 2204,
+              "bytes": "            <tagsToExclude>${test.exclude.tags}</tagsToExclude>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 2205,
+              "bytes": "          </configuration>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2206,
+              "bytes": "          <executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2207,
+              "bytes": "            <execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2208,
+              "bytes": "              <id>test</id>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2209,
+              "bytes": "              <goals>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 2210,
+              "bytes": "                <goal>test</goal>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 2211,
+              "bytes": "              </goals>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2212,
+              "bytes": "            </execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2213,
+              "bytes": "          </executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2214,
+              "bytes": "        </plugin>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2215,
+              "bytes": "        <plugin>\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 2230,
+              "bytes": "            <attach>true</attach>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 2231,
+              "bytes": "          </configuration>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2232,
+              "bytes": "          <executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2233,
+              "bytes": "            <execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2234,
+              "bytes": "              <id>create-source-jar</id>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2235,
+              "bytes": "              <goals>\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 2237,
+              "bytes": "                <goal>test-jar-no-fork</goal>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 2238,
+              "bytes": "              </goals>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2239,
+              "bytes": "            </execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2240,
+              "bytes": "          </executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2241,
+              "bytes": "        </plugin>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2242,
+              "bytes": "        <plugin>\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 2330,
+              "bytes": "          <artifactId>maven-dependency-plugin</artifactId>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 2331,
+              "bytes": "          <version>3.0.2</version>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2332,
+              "bytes": "          <executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2333,
+              "bytes": "            <execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2334,
+              "bytes": "              <id>default-cli</id>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2335,
+              "bytes": "              <goals>\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 2341,
+              "bytes": "                <includeScope>runtime</includeScope>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 2342,
+              "bytes": "              </configuration>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2343,
+              "bytes": "            </execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2344,
+              "bytes": "          </executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2345,
+              "bytes": "        </plugin>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2346,
+              "bytes": "        <!-- This plugin's configuration is used to store Eclipse m2e settings only. -->\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 2404,
+              "bytes": "        <groupId>org.apache.maven.plugins</groupId>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 2405,
+              "bytes": "        <artifactId>maven-dependency-plugin</artifactId>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2406,
+              "bytes": "        <executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2407,
+              "bytes": "          <execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2408,
+              "bytes": "            <id>generate-test-classpath</id>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2409,
+              "bytes": "            <phase>test-compile</phase>\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 2415,
+              "bytes": "              <outputProperty>test_classpath</outputProperty>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 2416,
+              "bytes": "            </configuration>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2417,
+              "bytes": "          </execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2418,
+              "bytes": "          <execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2419,
+              "bytes": "            <id>copy-module-dependencies</id>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2420,
+              "bytes": "            <phase>${build.copyDependenciesPhase}</phase>\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 2426,
+              "bytes": "              <outputDirectory>${jars.target.dir}</outputDirectory>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 2427,
+              "bytes": "            </configuration>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2428,
+              "bytes": "          </execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2429,
+              "bytes": "        </executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2430,
+              "bytes": "      </plugin>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2431,
+              "bytes": "\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 2479,
+              "bytes": "          </relocations>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 2480,
+              "bytes": "        </configuration>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2481,
+              "bytes": "        <executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2482,
+              "bytes": "          <execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2483,
+              "bytes": "            <phase>package</phase>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2484,
+              "bytes": "            <goals>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 2485,
+              "bytes": "              <goal>shade</goal>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 2486,
+              "bytes": "            </goals>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2487,
+              "bytes": "          </execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2488,
+              "bytes": "        </executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2489,
+              "bytes": "      </plugin>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2490,
+              "bytes": "      <plugin>\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 2516,
+              "bytes": "          <outputEncoding>${project.reporting.outputEncoding}</outputEncoding>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 2517,
+              "bytes": "        </configuration>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2518,
+              "bytes": "        <executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2519,
+              "bytes": "          <execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2520,
+              "bytes": "            <goals>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2521,
+              "bytes": "              <goal>check</goal>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 2522,
+              "bytes": "            </goals>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2523,
+              "bytes": "          </execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2524,
+              "bytes": "        </executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2525,
+              "bytes": "      </plugin>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2526,
+              "bytes": "      <plugin>\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 2545,
+              "bytes": "          </dependency>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 2546,
+              "bytes": "        </dependencies>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2547,
+              "bytes": "        <executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2548,
+              "bytes": "          <execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2549,
+              "bytes": "            <goals>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2550,
+              "bytes": "              <goal>check</goal>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 2551,
+              "bytes": "            </goals>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2552,
+              "bytes": "          </execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2553,
+              "bytes": "        </executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2554,
+              "bytes": "      </plugin>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2555,
+              "bytes": "\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 2557,
+              "bytes": "        <groupId>org.apache.maven.plugins</groupId>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 2558,
+              "bytes": "        <artifactId>maven-antrun-plugin</artifactId>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2559,
+              "bytes": "        <executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2560,
+              "bytes": "          <execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2561,
+              "bytes": "            <id>create-tmp-dir</id>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2562,
+              "bytes": "            <phase>generate-test-resources</phase>\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 2569,
+              "bytes": "              </target>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 2570,
+              "bytes": "            </configuration>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2571,
+              "bytes": "          </execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2572,
+              "bytes": "        </executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2573,
+              "bytes": "      </plugin>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2574,
+              "bytes": "\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 2586,
+              "bytes": "        <groupId>org.apache.maven.plugins</groupId>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 2587,
+              "bytes": "        <artifactId>maven-jar-plugin</artifactId>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2588,
+              "bytes": "        <executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2589,
+              "bytes": "          <execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2590,
+              "bytes": "            <id>prepare-test-jar</id>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2591,
+              "bytes": "            <phase>${build.testJarPhase}</phase>\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 2598,
+              "bytes": "              </excludes>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 2599,
+              "bytes": "            </configuration>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2600,
+              "bytes": "          </execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2601,
+              "bytes": "        </executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2602,
+              "bytes": "      </plugin>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2603,
+              "bytes": "    </plugins>\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 2757,
+              "bytes": "            <groupId>org.apache.maven.plugins</groupId>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 2758,
+              "bytes": "            <artifactId>maven-enforcer-plugin</artifactId>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2759,
+              "bytes": "            <executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2760,
+              "bytes": "              <execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2761,
+              "bytes": "                <id>enforce-versions</id>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2762,
+              "bytes": "                <goals>\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 2773,
+              "bytes": "                  </rules>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 2774,
+              "bytes": "                </configuration>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2775,
+              "bytes": "              </execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2776,
+              "bytes": "            </executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2777,
+              "bytes": "          </plugin>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2778,
+              "bytes": "        </plugins>\n",
+              "truncated": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/core/pom.xml",
+      "ext": "xml",
+      "matches": [
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 427,
+              "bytes": "        <groupId>org.apache.maven.plugins</groupId>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 428,
+              "bytes": "        <artifactId>maven-antrun-plugin</artifactId>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 429,
+              "bytes": "        <executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 430,
+              "bytes": "          <execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 431,
+              "bytes": "            <phase>generate-resources</phase>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 432,
+              "bytes": "            <configuration>\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 443,
+              "bytes": "              <goal>run</goal>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 444,
+              "bytes": "            </goals>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 445,
+              "bytes": "          </execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 446,
+              "bytes": "        </executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 447,
+              "bytes": "      </plugin>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 448,
+              "bytes": "      <plugin>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 449,
+              "bytes": "        <groupId>org.apache.maven.plugins</groupId>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 450,
+              "bytes": "        <artifactId>maven-dependency-plugin</artifactId>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 451,
+              "bytes": "        <executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 452,
+              "bytes": "          <!-- When using SPARK_PREPEND_CLASSES Spark classes compiled locally don't use\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 453,
+              "bytes": "               shaded deps. So here we store jars in their original form which are added\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 454,
+              "bytes": "               when the classpath is computed. -->\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 455,
+              "bytes": "          <!-- See similar execution in mllib/pom.xml -->\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 456,
+              "bytes": "          <execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 457,
+              "bytes": "            <id>copy-dependencies</id>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 458,
+              "bytes": "            <phase>package</phase>\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 471,
+              "bytes": "              <silent>true</silent>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 472,
+              "bytes": "            </configuration>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 473,
+              "bytes": "          </execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 474,
+              "bytes": "        </executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 475,
+              "bytes": "      </plugin>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 476,
+              "bytes": "    </plugins>\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 508,
+              "bytes": "            <artifactId>exec-maven-plugin</artifactId>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 509,
+              "bytes": "            <version>1.6.0</version>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 510,
+              "bytes": "            <executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 511,
+              "bytes": "              <execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 512,
+              "bytes": "                <id>sparkr-pkg</id>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 513,
+              "bytes": "                <phase>compile</phase>\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 515,
+              "bytes": "                  <goal>exec</goal>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 516,
+              "bytes": "                </goals>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 517,
+              "bytes": "              </execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 518,
+              "bytes": "            </executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 519,
+              "bytes": "            <configuration>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 520,
+              "bytes": "              <executable>${project.basedir}${file.separator}..${file.separator}R${file.separator}install-dev${script.ex...on}</executable>\n",
+              "truncated": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/assembly/pom.xml",
+      "ext": "xml",
+      "matches": [
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 108,
+              "bytes": "        <groupId>org.apache.maven.plugins</groupId>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 109,
+              "bytes": "          <artifactId>maven-antrun-plugin</artifactId>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 110,
+              "bytes": "          <executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 111,
+              "bytes": "            <execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 112,
+              "bytes": "              <phase>package</phase>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 113,
+              "bytes": "                <goals>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 114,
+              "bytes": "                  <goal>run</goal>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 115,
+              "bytes": "                </goals>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 116,
+              "bytes": "            </execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 117,
+              "bytes": "          </executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 118,
+              "bytes": "          <configuration>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 119,
+              "bytes": "            <target>\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 199,
+              "bytes": "            <artifactId>maven-assembly-plugin</artifactId>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 200,
+              "bytes": "            <version>3.1.0</version>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 201,
+              "bytes": "            <executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 202,
+              "bytes": "              <execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 203,
+              "bytes": "                <id>dist</id>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 204,
+              "bytes": "                <phase>package</phase>\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 211,
+              "bytes": "                  </descriptors>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 212,
+              "bytes": "                </configuration>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 213,
+              "bytes": "              </execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 214,
+              "bytes": "            </executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 215,
+              "bytes": "          </plugin>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 216,
+              "bytes": "        </plugins>\n",
+              "truncated": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/mllib/pom.xml",
+      "ext": "xml",
+      "matches": [
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 160,
+              "bytes": "        <groupId>org.apache.maven.plugins</groupId>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 161,
+              "bytes": "        <artifactId>maven-dependency-plugin</artifactId>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 162,
+              "bytes": "        <executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 163,
+              "bytes": "          <!-- When using SPARK_PREPEND_CLASSES Spark classes compiled locally don't use\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 164,
+              "bytes": "               shaded deps. So here we store jars in their original form which are added\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 165,
+              "bytes": "               when the classpath is computed. -->\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 166,
+              "bytes": "          <!-- See similar execution in core/pom.xml -->\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 167,
+              "bytes": "          <execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 168,
+              "bytes": "            <id>copy-dependencies</id>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 169,
+              "bytes": "            <phase>package</phase>\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 180,
+              "bytes": "              <silent>true</silent>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 181,
+              "bytes": "            </configuration>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 182,
+              "bytes": "          </execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 183,
+              "bytes": "        </executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 184,
+              "bytes": "      </plugin>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 185,
+              "bytes": "    </plugins>\n",
+              "truncated": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/repl/pom.xml",
+      "ext": "xml",
+      "matches": [
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 138,
+              "bytes": "        <groupId>org.codehaus.mojo</groupId>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 139,
+              "bytes": "        <artifactId>build-helper-maven-plugin</artifactId>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 140,
+              "bytes": "        <executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 141,
+              "bytes": "          <execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 142,
+              "bytes": "            <id>add-scala-sources</id>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 143,
+              "bytes": "            <phase>generate-sources</phase>\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 150,
+              "bytes": "              </sources>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 151,
+              "bytes": "            </configuration>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 152,
+              "bytes": "          </execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 153,
+              "bytes": "          <execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 154,
+              "bytes": "            <id>add-scala-test-sources</id>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 155,
+              "bytes": "            <phase>generate-test-sources</phase>\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 162,
+              "bytes": "              </sources>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 163,
+              "bytes": "            </configuration>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 164,
+              "bytes": "          </execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 165,
+              "bytes": "        </executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 166,
+              "bytes": "      </plugin>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 167,
+              "bytes": "    </plugins>\n",
+              "truncated": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/docs/ml-guide.md",
+      "ext": "md",
+      "matches": [
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 62,
+              "bytes": "platform's additional installation instructions.\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 63,
+              "bytes": "\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 64,
+              "bytes": "The most popular native BLAS such as [Intel MKL](https://software.intel.com/en-us/mkl), [OpenBLAS](http://www.openblas.n...execution model.\n",
+              "truncated": true
+            },
+            {
+              "kind": "after",
+              "num": 65,
+              "bytes": "\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 66,
+              "bytes": "Configuring these BLAS implementations to use a single thread for operations may actually improve performance (see [SPAR...cally left at 1.\n",
+              "truncated": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/docs/structured-streaming-programming-guide.md",
+      "ext": "md",
+      "matches": [
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 479,
+              "bytes": "\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 480,
+              "bytes": "## Fault Tolerance Semantics\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 481,
+              "bytes": "Delivering end-to-end exactly-once semantics was one of key goals behind the design of Structured Streaming. To achieve ...equence numbers)\n",
+              "truncated": true
+            },
+            {
+              "kind": "after",
+              "num": 482,
+              "bytes": "to track the read position in the stream. The engine uses checkpointing and write-ahead logs to record the offset range ...der any failure.\n",
+              "truncated": true
+            },
+            {
+              "kind": "after",
+              "num": 483,
+              "bytes": "\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 1829,
+              "bytes": "</table>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 1830,
+              "bytes": "\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 1831,
+              "bytes": "Note that you have to call `start()` to actually start the execution of the query. This returns a StreamingQuery object ... a few examples.\n",
+              "truncated": true
+            },
+            {
+              "kind": "after",
+              "num": 1832,
+              "bytes": "\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 1833,
+              "bytes": "\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 1995,
+              "bytes": "which has methods that get called whenever there is a sequence of rows generated as output after a trigger. Note the fol...mportant points.\n",
+              "truncated": true
+            },
+            {
+              "kind": "before",
+              "num": 1996,
+              "bytes": "\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 1997,
+              "bytes": "- The writer must be serializable, as it will be serialized and sent to the executors for execution.\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 1998,
+              "bytes": "\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 1999,
+              "bytes": "- All the three methods, `open`, `process` and `close` will be called on the executors.\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 2541,
+              "bytes": "  } ],\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 2542,
+              "bytes": "  \"sink\" : {\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2543,
+              "bytes": "    \"description\" : \"org.apache.spark.sql.execution.streaming.ConsoleSink@76b37531\"\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2544,
+              "bytes": "  }\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2545,
+              "bytes": "}\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 2714,
+              "bytes": "{:.no_toc}\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 2715,
+              "bytes": "\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2716,
+              "bytes": "**Continuous processing** is a new, experimental streaming execution mode introduced in Spark 2.3 that enables low (~1 m...et operations). \n",
+              "truncated": true
+            },
+            {
+              "kind": "after",
+              "num": 2717,
+              "bytes": "\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2718,
+              "bytes": "To run a supported query in continuous processing mode, all you need to do is specify a **continuous trigger** with the ...r. For example, \n",
+              "truncated": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/docs/tuning.md",
+      "ext": "md",
+      "matches": [
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 98,
+              "bytes": "## Memory Management Overview\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 99,
+              "bytes": "\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 100,
+              "bytes": "Memory usage in Spark largely falls under one of two categories: execution and storage.\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 101,
+              "bytes": "Execution memory refers to that used for computation in shuffles, joins, sorts and aggregations,\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 102,
+              "bytes": "while storage memory refers to that used for caching and propagating internal data across the\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 103,
+              "bytes": "cluster. In Spark, execution and storage share a unified region (M). When no execution memory is\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 104,
+              "bytes": "used, storage can acquire all the available memory and vice versa. Execution may evict storage\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 105,
+              "bytes": "if necessary, but only until total storage memory usage falls under a certain threshold (R).\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 106,
+              "bytes": "In other words, `R` describes a subregion within `M` where cached blocks are never evicted.\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 107,
+              "bytes": "Storage may not evict execution due to complexities in implementation.\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 108,
+              "bytes": "\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 109,
+              "bytes": "This design ensures several desirable properties. First, applications that do not use caching\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 110,
+              "bytes": "can use the entire space for execution, obviating unnecessary disk spills. Second, applications\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 111,
+              "bytes": "that do use caching can reserve a minimum storage space (R) where their data blocks are immune\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 112,
+              "bytes": "to being evicted. Lastly, this approach provides reasonable out-of-the-box performance for a\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 121,
+              "bytes": "large records.\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 122,
+              "bytes": "* `spark.memory.storageFraction` expresses the size of `R` as a fraction of `M` (default 0.5).\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 123,
+              "bytes": "`R` is the storage space within `M` where cached blocks immune to being evicted by execution.\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 124,
+              "bytes": "\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 125,
+              "bytes": "The value of `spark.memory.fraction` should be set in order to fit this amount of heap space\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 201,
+              "bytes": "The goal of GC tuning in Spark is to ensure that only long-lived RDDs are stored in the Old generation and that\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 202,
+              "bytes": "the Young generation is sufficiently sized to store short-lived objects. This will help avoid full GCs to collect\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 203,
+              "bytes": "temporary objects created during task execution. Some steps which may be useful are:\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 204,
+              "bytes": "\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 205,
+              "bytes": "* Check if there are too many garbage collections by collecting GC stats. If a full GC is invoked multiple times for\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 213,
+              "bytes": "* In the GC stats that are printed, if the OldGen is close to being full, reduce the amount of\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 214,
+              "bytes": "  memory used for caching by lowering `spark.memory.fraction`; it is better to cache fewer\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 215,
+              "bytes": "  objects than to slow down task execution. Alternatively, consider decreasing the size of\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 216,
+              "bytes": "  the Young generation. This means lowering `-Xmn` if you've set it as above. If not, try changing the \n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 217,
+              "bytes": "  value of the JVM's `NewRatio` parameter. Many JVMs default this to 2, meaning that the Old generation \n",
+              "truncated": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/docs/submitting-applications.md",
+      "ext": "md",
+      "matches": [
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 222,
+              "bytes": "\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 223,
+              "bytes": "Once you have deployed your application, the [cluster mode overview](cluster-overview.html) describes\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 224,
+              "bytes": "the components involved in distributed execution, and how to monitor and debug applications.\n",
+              "truncated": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/docs/building-spark.md",
+      "ext": "md",
+      "matches": [
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 37,
+              "bytes": "### build/mvn\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 38,
+              "bytes": "\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 39,
+              "bytes": "Spark now comes packaged with a self-contained Maven installation to ease building and deployment of Spark from source l...park as follows:\n",
+              "truncated": true
+            },
+            {
+              "kind": "after",
+              "num": 40,
+              "bytes": "\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 41,
+              "bytes": "    ./build/mvn -DskipTests clean package\n",
+              "truncated": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/docs/rdd-programming-guide.md",
+      "ext": "md",
+      "matches": [
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 768,
+              "bytes": "#### Example\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 769,
+              "bytes": "\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 770,
+              "bytes": "Consider the naive RDD element sum below, which may behave differently depending on whether execution is happening withi...submit to YARN):\n",
+              "truncated": true
+            },
+            {
+              "kind": "after",
+              "num": 771,
+              "bytes": "\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 772,
+              "bytes": "<div class=\"codetabs\">\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 815,
+              "bytes": "#### Local vs. cluster modes\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 816,
+              "bytes": "\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 817,
+              "bytes": "The behavior of the above code is undefined, and may not work as intended. To execute jobs, Spark breaks up the processi...o each executor.\n",
+              "truncated": true
+            },
+            {
+              "kind": "after",
+              "num": 818,
+              "bytes": "\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 819,
+              "bytes": "The variables within the closure sent to each executor are now copies and thus, when **counter** is referenced within th...ialized closure.\n",
+              "truncated": true
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 821,
+              "bytes": "In local mode, in some circumstances, the `foreach` function will actually execute within the same JVM as the driver and...ually update it.\n",
+              "truncated": true
+            },
+            {
+              "kind": "before",
+              "num": 822,
+              "bytes": "\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 823,
+              "bytes": "To ensure well-defined behavior in these sorts of scenarios one should use an [`Accumulator`](#accumulators). Accumulato... in more detail.\n",
+              "truncated": true
+            },
+            {
+              "kind": "after",
+              "num": 824,
+              "bytes": "\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 825,
+              "bytes": "In general, closures - constructs like loops or locally defined methods, should not be used to mutate some global state....ation is needed.\n",
+              "truncated": true
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 1111,
+              "bytes": "</table>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 1112,
+              "bytes": "\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 1113,
+              "bytes": "The Spark RDD API also exposes asynchronous versions of some actions, like `foreachAsync` for `foreach`, which immediate...n of the action.\n",
+              "truncated": true
+            },
+            {
+              "kind": "after",
+              "num": 1114,
+              "bytes": "\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 1115,
+              "bytes": "\n",
+              "truncated": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/docs/streaming-programming-guide.md",
+      "ext": "md",
+      "matches": [
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 67,
+              "bytes": "conversions from StreamingContext into our environment in order to add useful methods to\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 68,
+              "bytes": "other classes we need (like DStream). [StreamingContext](api/scala/index.html#org.apache.spark.streaming.StreamingContext) is the\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 69,
+              "bytes": "main entry point for all streaming functionality. We create a local StreamingContext with two execution threads,  and a ...val of 1 second.\n",
+              "truncated": true
+            },
+            {
+              "kind": "after",
+              "num": 70,
+              "bytes": "\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 71,
+              "bytes": "{% highlight scala %}\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 136,
+              "bytes": "[JavaStreamingContext](api/java/index.html?org/apache/spark/streaming/api/java/JavaStreamingContext.html) object,\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 137,
+              "bytes": "which is the main entry point for all streaming\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 138,
+              "bytes": "functionality. We create a local StreamingContext with two execution threads, and a batch interval of 1 second.\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 139,
+              "bytes": "\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 140,
+              "bytes": "{% highlight java %}\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 207,
+              "bytes": "</div>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 208,
+              "bytes": "<div data-lang=\"python\"  markdown=\"1\" >\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 209,
+              "bytes": "First, we import [StreamingContext](api/python/pyspark.streaming.html#pyspark.streaming.StreamingContext), which is the ...val of 1 second.\n",
+              "truncated": true
+            },
+            {
+              "kind": "after",
+              "num": 210,
+              "bytes": "\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 211,
+              "bytes": "{% highlight python %}\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 1219,
+              "bytes": "Output operations allow DStream's data to be pushed out to external systems like a database or a file systems.\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 1220,
+              "bytes": "Since the output operations actually allow the transformed data to be consumed by external systems,\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 1221,
+              "bytes": "they trigger the actual execution of all the DStream transformations (similar to actions for RDDs).\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 1222,
+              "bytes": "Currently, the following output operations are defined:\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 1223,
+              "bytes": "\n",
+              "truncated": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/docs/index.md",
+      "ext": "md",
+      "matches": [
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 8,
+              "bytes": "Apache Spark is a fast and general-purpose cluster computing system.\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 9,
+              "bytes": "It provides high-level APIs in Java, Scala, Python and R,\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 10,
+              "bytes": "and an optimized engine that supports general execution graphs.\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 11,
+              "bytes": "It also supports a rich set of higher-level tools including [Spark SQL](sql-programming-guide.html) for SQL and structur...ing-guide.html).\n",
+              "truncated": true
+            },
+            {
+              "kind": "after",
+              "num": 12,
+              "bytes": "\n",
+              "truncated": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/docs/spark-standalone.md",
+      "ext": "md",
+      "matches": [
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 289,
+              "bytes": "distributed to all worker nodes. For any additional jars that your application depends on, you\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 290,
+              "bytes": "should specify them through the `--jars` flag using comma as a delimiter (e.g. `--jars jar1,jar2`).\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 291,
+              "bytes": "To control the application's configuration or execution environment, see\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 292,
+              "bytes": "[Spark Configuration](configuration.html).\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 293,
+              "bytes": "\n",
+              "truncated": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/docs/configuration.md",
+      "ext": "md",
+      "matches": [
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 858,
+              "bytes": "  <td>1000</td>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 859,
+              "bytes": "  <td>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 860,
+              "bytes": "    How many finished executions the Spark UI and status APIs remember before garbage collecting.\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 861,
+              "bytes": "  </td>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 862,
+              "bytes": "</tr>\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 1069,
+              "bytes": "  <td>0.6</td>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 1070,
+              "bytes": "  <td>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 1071,
+              "bytes": "    Fraction of (heap space - 300MB) used for execution and storage. The lower this is, the\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 1072,
+              "bytes": "    more frequently spills and cached data eviction occur. The purpose of this config is to set\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 1073,
+              "bytes": "    aside memory for internal metadata, user data structures, and imprecise size estimation\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 1084,
+              "bytes": "    Amount of storage memory immune to eviction, expressed as a fraction of the size of the\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 1085,
+              "bytes": "    region set aside by <code>spark.memory.fraction</code>. The higher this is, the less\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 1086,
+              "bytes": "    working memory may be available to execution and tasks may spill to disk more often.\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 1087,
+              "bytes": "    Leaving this at the default value is recommended. For more detail, see\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 1088,
+              "bytes": "    <a href=\"tuning.html#memory-management-overview\">this description</a>.\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 1648,
+              "bytes": "  <td>false</td>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 1649,
+              "bytes": "  <td>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 1650,
+              "bytes": "    If set to \"true\", performs speculative execution of tasks. This means if one or more tasks are\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 1651,
+              "bytes": "    running slowly in a stage, they will be re-launched.\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 1652,
+              "bytes": "  </td>\n",
+              "truncated": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/docs/sql-programming-guide.md",
+      "ext": "md",
+      "matches": [
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 14,
+              "bytes": "Spark SQL uses this extra information to perform extra optimizations. There are several ways to\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 15,
+              "bytes": "interact with Spark SQL including SQL and the Dataset API. When computing a result\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 16,
+              "bytes": "the same execution engine is used, independent of which API/language you are using to express the\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 17,
+              "bytes": "computation. This unification means that developers can easily switch back and forth between\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 18,
+              "bytes": "different APIs based on which provides the most natural way to express a given transformation.\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 35,
+              "bytes": "Dataset is a new interface added in Spark 1.6 that provides the benefits of RDDs (strong\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 36,
+              "bytes": "typing, ability to use powerful lambda functions) with the benefits of Spark SQL's optimized\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 37,
+              "bytes": "execution engine. A Dataset can be [constructed](#creating-datasets) from JVM objects and then\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 38,
+              "bytes": "manipulated using functional transformations (`map`, `flatMap`, `filter`, etc.).\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 39,
+              "bytes": "The Dataset API is available in [Scala][scala-datasets] and\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 1204,
+              "bytes": "build of Spark SQL can be used to query different versions of Hive metastores, using the configuration described below.\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 1205,
+              "bytes": "Note that independent of the version of Hive that is being used to talk to the metastore, internally Spark SQL\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 1206,
+              "bytes": "will compile against Hive 1.2.1 and use those classes for internal execution (serdes, UDFs, UDAFs, etc).\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 1207,
+              "bytes": "\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 1208,
+              "bytes": "The following options can be used to configure the version of Hive that is used to retrieve metadata:\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 1488,
+              "bytes": "## Other Configuration Options\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 1489,
+              "bytes": "\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 1490,
+              "bytes": "The following options can also be used to tune the performance of query execution. It is possible\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 1491,
+              "bytes": "that these options will be deprecated in future release as more optimizations are performed automatically.\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 1492,
+              "bytes": "\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 1699,
+              "bytes": "using the call `toPandas()` and when creating a Spark DataFrame from a Pandas DataFrame with\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 1700,
+              "bytes": "`createDataFrame(pandas_df)`. To use Arrow when executing these calls, users need to first set\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 1701,
+              "bytes": "the Spark configuration 'spark.sql.execution.arrow.enabled' to 'true'. This is disabled by default.\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 1702,
+              "bytes": "\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 1703,
+              "bytes": "In addition, optimizations enabled by 'spark.sql.execution.arrow.enabled' could fallback automatically\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 1704,
+              "bytes": "to non-Arrow optimization implementation if an error occurs before the actual computation within Spark.\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 1705,
+              "bytes": "This can be controlled by 'spark.sql.execution.arrow.fallback.enabled'.\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 1706,
+              "bytes": "\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 1707,
+              "bytes": "<div class=\"codetabs\">\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 1780,
+              "bytes": "Data partitions in Spark are converted into Arrow record batches, which can temporarily lead to\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 1781,
+              "bytes": "high memory usage in the JVM. To avoid possible out of memory exceptions, the size of the Arrow\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 1782,
+              "bytes": "record batches can be adjusted by setting the conf \"spark.sql.execution.arrow.maxRecordsPerBatch\"\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 1783,
+              "bytes": "to an integer that will determine the maximum number of rows for each batch. The default value is\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 1784,
+              "bytes": "10,000 records per batch. If the number of columns is large, the value should be adjusted\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 1816,
+              "bytes": "\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 1817,
+              "bytes": "  - Since Spark 2.4, Spark maximizes the usage of a vectorized ORC reader for ORC files by default. To do that, `spark.s...e` respectively.\n",
+              "truncated": true
+            },
+            {
+              "kind": "match",
+              "num": 1818,
+              "bytes": "  - In PySpark, when Arrow optimization is enabled, previously `toPandas` just failed when Arrow optimization is unable ...llback.enabled`.\n",
+              "truncated": true
+            },
+            {
+              "kind": "after",
+              "num": 1819,
+              "bytes": "  - Since Spark 2.4, writing an empty dataframe to a directory launches at least one write task, even if physically the ...empty dataframe.\n",
+              "truncated": true
+            },
+            {
+              "kind": "after",
+              "num": 1820,
+              "bytes": "  - Since Spark 2.4, expression IDs in UDF arguments do not appear in column names. For example, an column name in Spark...l0 AS `colA`)``.\n",
+              "truncated": true
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 1972,
+              "bytes": "    Note that, for <b>DecimalType(38,0)*</b>, the table above intentionally does not cover all other combinations of sca... as double type.\n",
+              "truncated": true
+            },
+            {
+              "kind": "before",
+              "num": 1973,
+              "bytes": "  - In PySpark, now we need Pandas 0.19.2 or upper if you want to use Pandas related functionalities, such as `toPandas`... DataFrame, etc.\n",
+              "truncated": true
+            },
+            {
+              "kind": "match",
+              "num": 1974,
+              "bytes": "  - In PySpark, the behavior of timestamp values for Pandas related functionalities was changed to respect session timez...95) for details.\n",
+              "truncated": true
+            },
+            {
+              "kind": "after",
+              "num": 1975,
+              "bytes": "  - In PySpark, `na.fill()` or `fillna` also accepts boolean and replaces nulls with booleans. In prior Spark versions, ...taset/DataFrame.\n",
+              "truncated": true
+            },
+            {
+              "kind": "after",
+              "num": 1976,
+              "bytes": "  - Since Spark 2.3, when either broadcast hash join or broadcast nested loop join is applicable, we prefer to broadcast...se/SPARK-22489).\n",
+              "truncated": true
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 2050,
+              "bytes": "## Upgrading From Spark SQL 1.4 to 1.5\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 2051,
+              "bytes": "\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 2052,
+              "bytes": " - Optimized execution using manually managed memory (Tungsten) is now enabled by default, along with\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2053,
+              "bytes": "   code generation for expression evaluation. These features can both be disabled by setting\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 2054,
+              "bytes": "   `spark.sql.tungsten.enabled` to `false`.\n",
+              "truncated": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/project/MimaExcludes.scala",
+      "ext": "scala",
+      "matches": [
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 98,
+              "bytes": "    ProblemFilters.exclude[ReversedMissingMethodProblem](\"org.apache.spark.TaskContext.stageAttemptNumber\"),\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 99,
+              "bytes": "\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 100,
+              "bytes": "    // SPARK-22789: Map-only continuous processing execution\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 101,
+              "bytes": "    ProblemFilters.exclude[IncompatibleResultTypeProblem](\"org.apache.spark.sql.streaming.StreamingQueryManager.startQuery$default$8\"),\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 102,
+              "bytes": "    ProblemFilters.exclude[DirectMissingMethodProblem](\"org.apache.spark.sql.streaming.StreamingQueryManager.startQuery$default$6\"),\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 365,
+              "bytes": "      ProblemFilters.exclude[Problem](\"org.apache.spark.util.collection.unsafe.*\"),\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 366,
+              "bytes": "      ProblemFilters.exclude[Problem](\"org.apache.spark.sql.catalyst.*\"),\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 367,
+              "bytes": "      ProblemFilters.exclude[Problem](\"org.apache.spark.sql.execution.*\"),\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 368,
+              "bytes": "      ProblemFilters.exclude[Problem](\"org.apache.spark.sql.internal.*\"),\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 369,
+              "bytes": "      ProblemFilters.exclude[MissingMethodProblem](\"org.apache.spark.mllib.feature.PCAModel.this\"),\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 539,
+              "bytes": "    ) ++ Seq(\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 540,
+              "bytes": "      // SPARK-12689 Migrate DDL parsing to the newly absorbed parser\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 541,
+              "bytes": "      ProblemFilters.exclude[MissingClassProblem](\"org.apache.spark.sql.execution.datasources.DDLParser\"),\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 542,
+              "bytes": "      ProblemFilters.exclude[MissingClassProblem](\"org.apache.spark.sql.execution.datasources.DDLException\"),\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 543,
+              "bytes": "      ProblemFilters.exclude[MissingMethodProblem](\"org.apache.spark.sql.SQLContext.ddlParser\")\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 544,
+              "bytes": "    ) ++ Seq(\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 977,
+              "bytes": "      ProblemFilters.exclude[DirectMissingMethodProblem](\"org.apache.spark.sql.SQLContext.getSchema\")\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 978,
+              "bytes": "    ) ++ Seq(\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 979,
+              "bytes": "      // [SPARK-14407] Hides HadoopFsRelation related data source API into execution package\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 980,
+              "bytes": "      ProblemFilters.exclude[MissingClassProblem](\"org.apache.spark.sql.sources.OutputWriter\"),\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 981,
+              "bytes": "      ProblemFilters.exclude[MissingClassProblem](\"org.apache.spark.sql.sources.OutputWriterFactory\")\n",
+              "truncated": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/project/SparkBuild.scala",
+      "ext": "scala",
+      "matches": [
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 519,
+              "bytes": "        |import org.apache.spark.sql.catalyst.rules._\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 520,
+              "bytes": "        |import org.apache.spark.sql.catalyst.util._\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 521,
+              "bytes": "        |import org.apache.spark.sql.execution\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 522,
+              "bytes": "        |import org.apache.spark.sql.functions._\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 523,
+              "bytes": "        |import org.apache.spark.sql.types._\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 552,
+              "bytes": "        |import org.apache.spark.sql.catalyst.rules._\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 553,
+              "bytes": "        |import org.apache.spark.sql.catalyst.util._\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 554,
+              "bytes": "        |import org.apache.spark.sql.execution\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 555,
+              "bytes": "        |import org.apache.spark.sql.functions._\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 556,
+              "bytes": "        |import org.apache.spark.sql.hive._\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 670,
+              "bytes": "      .map(_.filterNot(_.getCanonicalPath.contains(\"org/apache/spark/util/collection\")))\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 671,
+              "bytes": "      .map(_.filterNot(_.getCanonicalPath.contains(\"org/apache/spark/sql/catalyst\")))\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 672,
+              "bytes": "      .map(_.filterNot(_.getCanonicalPath.contains(\"org/apache/spark/sql/execution\")))\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 673,
+              "bytes": "      .map(_.filterNot(_.getCanonicalPath.contains(\"org/apache/spark/sql/internal\")))\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 674,
+              "bytes": "      .map(_.filterNot(_.getCanonicalPath.contains(\"org/apache/spark/sql/hive/test\")))\n",
+              "truncated": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/dev/appveyor-guide.md",
+      "ext": "md",
+      "matches": [
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 154,
+              "bytes": "1. Error: spark.lda with text input (@test_mllib.R#655) ------------------------\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 155,
+              "bytes": " org.apache.spark.sql.AnalysisException: Path does not exist: file:/C:/projects/spark/R/lib/SparkR/tests/testthat/data/m...le_lda_data.txt;\n",
+              "truncated": true
+            },
+            {
+              "kind": "match",
+              "num": 156,
+              "bytes": "    at org.apache.spark.sql.execution.datasources.DataSource$$anonfun$12.apply(DataSource.scala:376)\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 157,
+              "bytes": "    at org.apache.spark.sql.execution.datasources.DataSource$$anonfun$12.apply(DataSource.scala:365)\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 158,
+              "bytes": "    at scala.collection.TraversableLike$$anonfun$flatMap$1.apply(TraversableLike.scala:241)\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 159,
+              "bytes": "    at scala.collection.TraversableLike$$anonfun$flatMap$1.apply(TraversableLike.scala:241)\n",
+              "truncated": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/sql/README.md",
+      "ext": "md",
+      "matches": [
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 6,
+              "bytes": "Spark SQL is broken up into four subprojects:\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 7,
+              "bytes": " - Catalyst (sql/catalyst) - An implementation-agnostic framework for manipulating trees of relational operators and expressions.\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 8,
+              "bytes": " - Execution (sql/core) - A query planner / execution engine for translating Catalyst's logical query plans into Spark R...d Parquet files.\n",
+              "truncated": true
+            },
+            {
+              "kind": "after",
+              "num": 9,
+              "bytes": " - Hive Support (sql/hive) - Includes an extension of SQLContext called HiveContext that allows users to write queries u...DAFs, and UDTFs.\n",
+              "truncated": true
+            },
+            {
+              "kind": "after",
+              "num": 10,
+              "bytes": " - HiveServer and CLI support (sql/hive-thriftserver) - Includes support for the SQL CLI (bin/spark-sql) and a HiveServe...mpatible server.\n",
+              "truncated": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/python/pyspark/taskcontext.py",
+      "ext": "py",
+      "matches": [
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 25,
+              "bytes": "\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 26,
+              "bytes": "    Contextual information about a task which can be read or mutated during\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 27,
+              "bytes": "    execution. To access the TaskContext for a running task, use:\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 28,
+              "bytes": "    L{TaskContext.get()}.\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 29,
+              "bytes": "    \"\"\"\n",
+              "truncated": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/python/pyspark/heapq3.py",
+      "ext": "py",
+      "matches": [
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 358,
+              "bytes": "especially useful in simulation contexts, where the tree holds all\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 359,
+              "bytes": "incoming events, and the \"win\" condition means the smallest scheduled\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 360,
+              "bytes": "time.  When an event schedule other events for execution, they are\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 361,
+              "bytes": "scheduled into the future, so they can easily go into the heap.  So, a\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 362,
+              "bytes": "heap is a good structure for implementing schedulers (this is what I\n",
+              "truncated": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/python/pyspark/context.py",
+      "ext": "py",
+      "matches": [
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 905,
+              "bytes": "        different value or cleared.\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 906,
+              "bytes": "\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 907,
+              "bytes": "        Often, a unit of execution in an application consists of multiple Spark actions or jobs.\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 908,
+              "bytes": "        Application programmers can use this method to group all those jobs together and give a\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 909,
+              "bytes": "        group description. Once set, the Spark web UI will associate such jobs with this group.\n",
+              "truncated": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/common/network-yarn/pom.xml",
+      "ext": "xml",
+      "matches": [
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 120,
+              "bytes": "          </relocations>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 121,
+              "bytes": "        </configuration>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 122,
+              "bytes": "        <executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 123,
+              "bytes": "          <execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 124,
+              "bytes": "            <phase>package</phase>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 125,
+              "bytes": "            <goals>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 126,
+              "bytes": "              <goal>shade</goal>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 127,
+              "bytes": "            </goals>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 128,
+              "bytes": "          </execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 129,
+              "bytes": "        </executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 130,
+              "bytes": "      </plugin>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 131,
+              "bytes": "\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 134,
+              "bytes": "        <groupId>org.apache.maven.plugins</groupId>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 135,
+              "bytes": "        <artifactId>maven-antrun-plugin</artifactId>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 136,
+              "bytes": "        <executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 137,
+              "bytes": "          <execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 138,
+              "bytes": "            <phase>verify</phase>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 139,
+              "bytes": "            <goals>\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 162,
+              "bytes": "              </target>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 163,
+              "bytes": "            </configuration>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 164,
+              "bytes": "          </execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 165,
+              "bytes": "        </executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 166,
+              "bytes": "      </plugin>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 167,
+              "bytes": "    </plugins>\n",
+              "truncated": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/common/network-common/pom.xml",
+      "ext": "xml",
+      "matches": [
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 130,
+              "bytes": "        <groupId>org.apache.maven.plugins</groupId>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 131,
+              "bytes": "        <artifactId>maven-jar-plugin</artifactId>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 132,
+              "bytes": "        <executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 133,
+              "bytes": "          <execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 134,
+              "bytes": "            <id>prepare-test-jar</id>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 135,
+              "bytes": "            <phase>test-compile</phase>\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 137,
+              "bytes": "              <goal>test-jar</goal>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 138,
+              "bytes": "            </goals>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 139,
+              "bytes": "          </execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 140,
+              "bytes": "        </executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 141,
+              "bytes": "      </plugin>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 142,
+              "bytes": "    </plugins>\n",
+              "truncated": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/external/kafka-0-10-assembly/pom.xml",
+      "ext": "xml",
+      "matches": [
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 148,
+              "bytes": "        </filters>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 149,
+              "bytes": "      </configuration>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 150,
+              "bytes": "      <executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 151,
+              "bytes": "        <execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 152,
+              "bytes": "          <phase>package</phase>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 153,
+              "bytes": "          <goals>\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 167,
+              "bytes": "            </transformers>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 168,
+              "bytes": "          </configuration>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 169,
+              "bytes": "        </execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 170,
+              "bytes": "      </executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 171,
+              "bytes": "    </plugin>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 172,
+              "bytes": "  </plugins>\n",
+              "truncated": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/external/kinesis-asl-assembly/pom.xml",
+      "ext": "xml",
+      "matches": [
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 187,
+              "bytes": "        </filters>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 188,
+              "bytes": "      </configuration>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 189,
+              "bytes": "      <executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 190,
+              "bytes": "        <execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 191,
+              "bytes": "          <phase>package</phase>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 192,
+              "bytes": "          <goals>\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 206,
+              "bytes": "            </transformers>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 207,
+              "bytes": "          </configuration>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 208,
+              "bytes": "        </execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 209,
+              "bytes": "      </executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 210,
+              "bytes": "    </plugin>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 211,
+              "bytes": "  </plugins>\n",
+              "truncated": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/external/flume-sink/pom.xml",
+      "ext": "xml",
+      "matches": [
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 119,
+              "bytes": "          <outputDirectory>${project.basedir}/target/scala-${scala.binary.version}/src_managed/main/compiled_avro</outputDirectory>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 120,
+              "bytes": "        </configuration>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 121,
+              "bytes": "        <executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 122,
+              "bytes": "          <execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 123,
+              "bytes": "            <phase>generate-sources</phase>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 124,
+              "bytes": "            <goals>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 125,
+              "bytes": "              <goal>idl-protocol</goal>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 126,
+              "bytes": "            </goals>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 127,
+              "bytes": "          </execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 128,
+              "bytes": "        </executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 129,
+              "bytes": "      </plugin>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 130,
+              "bytes": "      <plugin>\n",
+              "truncated": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/external/flume-assembly/pom.xml",
+      "ext": "xml",
+      "matches": [
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 131,
+              "bytes": "          </filters>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 132,
+              "bytes": "        </configuration>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 133,
+              "bytes": "        <executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 134,
+              "bytes": "          <execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 135,
+              "bytes": "            <phase>package</phase>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 136,
+              "bytes": "            <goals>\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 150,
+              "bytes": "              </transformers>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 151,
+              "bytes": "            </configuration>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 152,
+              "bytes": "          </execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 153,
+              "bytes": "        </executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 154,
+              "bytes": "      </plugin>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 155,
+              "bytes": "    </plugins>\n",
+              "truncated": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/external/kafka-0-8-assembly/pom.xml",
+      "ext": "xml",
+      "matches": [
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 148,
+              "bytes": "        </filters>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 149,
+              "bytes": "      </configuration>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 150,
+              "bytes": "      <executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 151,
+              "bytes": "        <execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 152,
+              "bytes": "          <phase>package</phase>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 153,
+              "bytes": "          <goals>\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 167,
+              "bytes": "            </transformers>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 168,
+              "bytes": "          </configuration>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 169,
+              "bytes": "        </execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 170,
+              "bytes": "      </executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 171,
+              "bytes": "    </plugin>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 172,
+              "bytes": "  </plugins>\n",
+              "truncated": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/sql/core/pom.xml",
+      "ext": "xml",
+      "matches": [
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 172,
+              "bytes": "       <!--\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 173,
+              "bytes": "            This plugin forces the generation of jar containing sql test classes,\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 174,
+              "bytes": "            so that the tests classes of external modules can use them. The two execution profiles\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 175,
+              "bytes": "            are necessary - first one for 'mvn package', second one for 'mvn test-compile'. Ideally,\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 176,
+              "bytes": "            'mvn compile' should not compile test classes and therefore should not need this.\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 177,
+              "bytes": "            However, a closed due to \"Cannot Reproduce\" Maven bug (https://issues.apache.org/jira/browse/MNG-3559)\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 178,
+              "bytes": "            causes the compilation to fail if catalyst test-jar is not generated. Hence, the\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 179,
+              "bytes": "            second execution profile for 'mvn test-compile'.\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 180,
+              "bytes": "      -->\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 181,
+              "bytes": "      <plugin>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 182,
+              "bytes": "        <groupId>org.apache.maven.plugins</groupId>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 183,
+              "bytes": "        <artifactId>maven-jar-plugin</artifactId>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 184,
+              "bytes": "        <executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 185,
+              "bytes": "          <execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 186,
+              "bytes": "            <id>prepare-test-jar</id>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 187,
+              "bytes": "            <phase>test-compile</phase>\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 189,
+              "bytes": "              <goal>test-jar</goal>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 190,
+              "bytes": "            </goals>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 191,
+              "bytes": "          </execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 192,
+              "bytes": "        </executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 193,
+              "bytes": "      </plugin>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 194,
+              "bytes": "      <plugin>\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 202,
+              "bytes": "        <groupId>org.codehaus.mojo</groupId>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 203,
+              "bytes": "        <artifactId>build-helper-maven-plugin</artifactId>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 204,
+              "bytes": "        <executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 205,
+              "bytes": "          <execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 206,
+              "bytes": "            <id>add-scala-test-sources</id>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 207,
+              "bytes": "            <phase>generate-test-sources</phase>\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 214,
+              "bytes": "              </sources>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 215,
+              "bytes": "            </configuration>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 216,
+              "bytes": "          </execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 217,
+              "bytes": "        </executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 218,
+              "bytes": "      </plugin>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 219,
+              "bytes": "    </plugins>\n",
+              "truncated": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/sql/catalyst/pom.xml",
+      "ext": "xml",
+      "matches": [
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 111,
+              "bytes": "      <!--\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 112,
+              "bytes": "           This plugin forces the generation of jar containing catalyst test classes,\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 113,
+              "bytes": "           so that the tests classes of external modules can use them. The two execution profiles\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 114,
+              "bytes": "           are necessary - first one for 'mvn package', second one for 'mvn test-compile'. Ideally,\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 115,
+              "bytes": "           'mvn compile' should not compile test classes and therefore should not need this.\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 116,
+              "bytes": "           However, a closed due to \"Cannot Reproduce\" Maven bug (https://issues.apache.org/jira/browse/MNG-3559)\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 117,
+              "bytes": "           causes the compilation to fail if catalyst test-jar is not generated. Hence, the\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 118,
+              "bytes": "           second execution profile for 'mvn test-compile'.\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 119,
+              "bytes": "      -->\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 120,
+              "bytes": "      <plugin>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 121,
+              "bytes": "        <groupId>org.apache.maven.plugins</groupId>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 122,
+              "bytes": "        <artifactId>maven-jar-plugin</artifactId>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 123,
+              "bytes": "        <executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 124,
+              "bytes": "          <execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 125,
+              "bytes": "            <id>prepare-test-jar</id>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 126,
+              "bytes": "            <phase>test-compile</phase>\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 128,
+              "bytes": "              <goal>test-jar</goal>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 129,
+              "bytes": "            </goals>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 130,
+              "bytes": "          </execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 131,
+              "bytes": "        </executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 132,
+              "bytes": "      </plugin>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 133,
+              "bytes": "      <plugin>\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 141,
+              "bytes": "        <groupId>org.antlr</groupId>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 142,
+              "bytes": "        <artifactId>antlr4-maven-plugin</artifactId>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 143,
+              "bytes": "        <executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 144,
+              "bytes": "          <execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 145,
+              "bytes": "            <goals>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 146,
+              "bytes": "              <goal>antlr4</goal>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 147,
+              "bytes": "            </goals>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 148,
+              "bytes": "          </execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 149,
+              "bytes": "        </executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 150,
+              "bytes": "        <configuration>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 151,
+              "bytes": "          <visitor>true</visitor>\n",
+              "truncated": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/sql/hive/pom.xml",
+      "ext": "xml",
+      "matches": [
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 201,
+              "bytes": "            <artifactId>build-helper-maven-plugin</artifactId>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 202,
+              "bytes": "            <version>3.0.0</version>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 203,
+              "bytes": "            <executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 204,
+              "bytes": "              <execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 205,
+              "bytes": "                <id>add-scala-test-sources</id>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 206,
+              "bytes": "                <phase>generate-test-sources</phase>\n",
+              "truncated": false
+            }
+          ]
+        },
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 213,
+              "bytes": "                  </sources>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 214,
+              "bytes": "                </configuration>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 215,
+              "bytes": "              </execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 216,
+              "bytes": "            </executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 217,
+              "bytes": "          </plugin>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 218,
+              "bytes": "        </plugins>\n",
+              "truncated": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/Users/sadikovi/Developer/spark/sql/hive-thriftserver/pom.xml",
+      "ext": "xml",
+      "matches": [
+        {
+          "lines": [
+            {
+              "kind": "before",
+              "num": 120,
+              "bytes": "        <groupId>org.codehaus.mojo</groupId>\n",
+              "truncated": false
+            },
+            {
+              "kind": "before",
+              "num": 121,
+              "bytes": "        <artifactId>build-helper-maven-plugin</artifactId>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 122,
+              "bytes": "        <executions>\n",
+              "truncated": false
+            },
+            {
+              "kind": "match",
+              "num": 123,
+              "bytes": "          <execution>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 124,
+              "bytes": "            <id>add-default-sources</id>\n",
+              "truncated": false
+            },
+            {
+              "kind": "after",
+              "num": 125,
+              "bytes": "            <phase>generate-sources</phase>\n",
+              "truncated": false
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "content_matches": {
+    "count": 34,
+    "match": "exact"
+  }
+}
