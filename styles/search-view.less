@@ -5,17 +5,24 @@
 @medium-font-size: 1.2 * @font-size;
 
 .search-view {
-  display: flex;
-  overflow: auto;
-
   .text {
     color: @text-color;
   }
 
-  .search-panel {
+  section {
     width: 100%;
     padding: @section-padding;
 
+    h1,h2.section-heading {
+      cursor: pointer;
+
+      span {
+        margin-left: @component-padding;
+      }
+    }
+  }
+
+  .control-panel {
     atom-text-editor[mini] {
       opacity: .75;
       .selection .region {
