@@ -17,5 +17,12 @@
   },
   "dependencies": {
     "marked": "^0.3.6"
+  },
+  "consumedServices": {
+    "tree-view": {
+      "versions": {
+        "^1.0.0": "consumeTreeView"
+      }
+    }
   }
 }
