@@ -23,6 +23,15 @@
   }
 
   .control-panel {
+    .project-selector {
+      padding-top: @component-padding;
+      padding-bottom: @component-padding;
+
+      li,span {
+        cursor: pointer;
+      }
+    }
+
     atom-text-editor[mini] {
       opacity: .75;
       .selection .region {
