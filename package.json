@@ -15,9 +15,6 @@
   "engines": {
     "atom": ">=1.21.0"
   },
-  "dependencies": {
-    "marked": "^0.3.6"
-  },
   "deserializers": {
     "omnisearch/search-view/SearchView": "deserialize"
   },
