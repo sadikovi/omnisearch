@@ -55,4 +55,18 @@
       padding-top: @component-padding;
     }
   }
+
+  .content-view {
+    div.line-block {
+      border-radius: @component-border-radius;
+      border: 1px solid @text-color-selected;
+
+      .line-block-heading {
+        border-radius: @component-border-radius @component-border-radius 0 0;
+        border-bottom: 1px solid @text-color-selected;
+        color: @text-color-highlight;
+        background-color: @button-background-color-selected;
+      }
+    }
+  }
 }
