@@ -3,8 +3,11 @@
 @section-padding: 2 * @component-padding;
 @large-font-size: 2 * @font-size;
 @medium-font-size: 1.2 * @font-size;
+@component-monospace: "SFMono-Regular",Consolas,"Liberation Mono",Menlo,Courier,monospace;
 
 .search-view {
+  overflow: auto;
+
   .text {
     color: @text-color;
   }
@@ -32,6 +35,7 @@
 
   .control-panel {
     .project-selector {
+      font-family: @component-monospace;
       padding-top: @component-padding;
       padding-bottom: @component-padding;
       cursor: pointer;
@@ -54,22 +58,82 @@
         background-color: contrast(@input-background-color, lighten(@input-background-color, 12%), darken(@input-background-color, 12%));
       }
     }
+  }
 
-    div.extensions-list {
-      padding-top: @component-padding;
-    }
+  .file-view {
+    font-family: @component-monospace;
   }
 
   .content-view {
-    div.line-block {
-      border-radius: @component-border-radius;
-      border: 1px solid @text-color-selected;
+    font-family: @component-monospace;
 
-      .line-block-heading {
-        border-radius: @component-border-radius @component-border-radius 0 0;
-        border-bottom: 1px solid @text-color-selected;
-        color: @text-color-highlight;
-        background-color: @button-background-color-selected;
+    table {
+      border-spacing: 0;
+      border-collapse: collapse;
+    }
+
+    td {
+      display: table-cell;
+      padding: 0;
+    }
+
+    .file {
+      position: relative;
+      margin-top: 16px;
+      margin-bottom: 16px;
+      border: 1px solid @base-border-color;
+      border-radius: @component-border-radius;
+      color: @text-color;
+
+      .file-header {
+        padding: @component-padding;
+        background-color: @background-color-selected;
+        border-bottom: 1px solid @base-border-color;
+        border-top-left-radius: @component-border-radius;
+        border-top-right-radius: @component-border-radius;
+      }
+
+      .code-wrapper {
+        overflow-x: auto;
+        overflow-y: hidden;
+        border-bottom-right-radius: @component-border-radius;
+        border-bottom-left-radius: @component-border-radius;
+      }
+
+      .code-line-num {
+        width: 1%;
+        min-width: 50px;
+        padding-right: @component-padding;
+        padding-left: @component-padding;
+        text-align: right;
+        white-space: nowrap;
+        vertical-align: top;
+        cursor: pointer;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+
+      .code-line-label {
+        width: 1%;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      .code-blob {
+        position: relative;
+        padding-right: @component-padding;
+        padding-left: @component-padding;
+        vertical-align: top;
+        overflow: visible;
+        word-wrap: normal;
+        white-space: pre;
+      }
+
+      .match-separator {
+        height: @component-padding;
+        background-color: @background-color-selected;
       }
     }
   }
