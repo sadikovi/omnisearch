@@ -70,8 +70,8 @@
     }
   ],
   "file_matches": {
-    "count": 17,
-    "match": "exact"
+    "count": 10,
+    "match": "atleast"
   },
   "content": [
     {
