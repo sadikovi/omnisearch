@@ -10,15 +10,16 @@ use grep::searcher::SinkError;
 use regex::{Error as RegexError};
 
 /// General error struct.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Error {
+  err: bool,
   msg: String
 }
 
 impl Error {
   /// Creates a new error with provided message.
   pub fn new(msg: String) -> Self {
-    Self { msg }
+    Self { err: true, msg: msg }
   }
 }
 

@@ -42,6 +42,12 @@ fn find(params: params::QueryParams) -> Result<String, errors::Error> {
   json::to_string(&res).map_err(|err| errors::Error::new(err.to_string()))
 }
 
+// Function to convert error into a JSON string.
+fn err2json(error: &errors::Error) -> String {
+  json::to_string(&error)
+    .unwrap_or("{\"err\":true,\"msg\":\"Server error\"}".to_owned())
+}
+
 fn service(req: Request<Body>) -> BoxFuture {
   match (req.method(), req.uri().path()) {
     (&Method::GET, "/ping") => {
@@ -68,14 +74,15 @@ fn service(req: Request<Body>) -> BoxFuture {
                   response
                 }
                 Err(error) => {
-                  let mut response = Response::new(Body::from(error.to_string()));
+                  let mut response = Response::new(Body::from(err2json(&error)));
                   *response.status_mut() = StatusCode::BAD_REQUEST;
                   response
                 }
               }
             },
             Err(error) => {
-              let mut response = Response::new(Body::from(error.to_string()));
+              let error = errors::Error::new(error.to_string());
+              let mut response = Response::new(Body::from(err2json(&error)));
               *response.status_mut() = StatusCode::BAD_REQUEST;
               response
             }
@@ -84,7 +91,8 @@ fn service(req: Request<Body>) -> BoxFuture {
       Box::new(response)
     },
     _ => {
-      let mut response = Response::new(Body::empty());
+      let error = errors::Error::new("404: Not Found".to_owned());
+      let mut response = Response::new(Body::from(err2json(&error)));
       *response.status_mut() = StatusCode::NOT_FOUND;
       Box::new(future::ok(response))
     }

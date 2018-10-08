@@ -12,9 +12,9 @@ use regex::RegexBuilder;
 use result::*;
 
 // Maximum number of files we collect.
-const FILE_MAX_MATCHES: usize = 20;
+const FILE_MAX_MATCHES: usize = 10;
 // Maximum number of matches we collect.
-const CONTENT_MAX_MATCHES: usize = 200;
+const CONTENT_MAX_MATCHES: usize = 100;
 // Number of lines of context ot fetch.
 const CONTEXT_NUM_LINES: usize = 2;
 
@@ -130,6 +130,10 @@ pub fn find(
   let path = dir.as_path();
   if !path.is_dir() {
     return err!("Path {} is not a directory", path.to_str().unwrap_or(""));
+  }
+
+  if pattern.len() == 0 {
+    return err!("Empty pattern, expected a valid search word or regular expression");
   }
 
   // Set of extensions to check against.
