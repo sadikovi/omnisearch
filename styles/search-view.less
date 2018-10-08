@@ -16,16 +16,21 @@
     display: none;
   }
 
+  // Mixin to add pointer
+  .with-pointer {
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+
   section {
     width: 100%;
     padding: @section-padding;
 
     h1,h2.section-heading {
-      cursor: pointer;
-      -webkit-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
-      user-select: none;
+      .with-pointer();
 
       span {
         margin-left: @component-padding;
@@ -35,10 +40,10 @@
 
   .control-panel {
     .project-selector {
+      .with-pointer();
       font-family: @component-monospace;
       padding-top: @component-padding;
       padding-bottom: @component-padding;
-      cursor: pointer;
 
       span.active {
         color: @text-color-highlight;
@@ -77,11 +82,7 @@
     }
 
     tr {
-      cursor: pointer;
-      -webkit-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
-      user-select: none;
+      .with-pointer();
 
       &:hover {
         background-color: @background-color-highlight;
@@ -102,11 +103,17 @@
       color: @text-color;
 
       .file-header {
+        .with-pointer();
         padding: @component-padding;
         background-color: @background-color-selected;
         border-bottom: 1px solid @base-border-color;
         border-top-left-radius: @component-border-radius;
         border-top-right-radius: @component-border-radius;
+
+        &.collapsed {
+          border-bottom: 0px;
+          border-radius: @component-border-radius;
+        }
       }
 
       .code-wrapper {
