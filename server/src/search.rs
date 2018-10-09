@@ -70,7 +70,6 @@ impl Sink for Collector {
     } else {
       err!("Line numbers are not enabled")
     }
-
   }
 
   fn context(&mut self, _: &Searcher, ctx: &SinkContext) -> Result<bool, Self::Error> {
