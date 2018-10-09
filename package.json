@@ -17,12 +17,5 @@
   },
   "deserializers": {
     "omnisearch/search-view/SearchView": "deserialize"
-  },
-  "consumedServices": {
-    "tree-view": {
-      "versions": {
-        "^1.0.0": "consumeTreeView"
-      }
-    }
   }
 }
