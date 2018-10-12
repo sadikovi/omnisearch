@@ -1,4 +1,7 @@
 {
+  "atom-workspace": {
+    "shift-cmd-space": "omnisearch:toggle"
+  },
   "atom-text-editor.omnisearch": {
     "enter": "omnisearch:search"
   },
