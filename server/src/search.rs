@@ -2,6 +2,7 @@ use std::path::Path;
 use std::sync::{mpsc, Arc};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::thread;
+use std::time;
 
 use errors;
 use ext::{Extension, Extensions};
@@ -125,6 +126,8 @@ pub fn find(
   pattern: &str,
   extensions: Vec<Extension>
 ) -> Result<SearchResult, errors::Error> {
+  let start_time = time::Instant::now();
+
   let dir = dir.canonicalize()?;
   let path = dir.as_path();
   if !path.is_dir() {
@@ -257,5 +260,8 @@ pub fn find(
     Matched::AtLeast(content.len())
   };
 
-  Ok(SearchResult::new(files, file_matches, content, content_matches))
+  let duration = start_time.elapsed();
+  let exec_time = duration.as_secs() as f64 + duration.subsec_nanos() as f64 * 1e-9;
+
+  Ok(SearchResult::new(exec_time, files, file_matches, content, content_matches))
 }

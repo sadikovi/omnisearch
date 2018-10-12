@@ -138,6 +138,7 @@ impl Serialize for Matched {
 /// General search result that has file matches and content matches.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SearchResult {
+  time_sec: f64, // time taken to execute query
   files: Vec<FileItem>,
   file_matches: Matched,
   content: Vec<ContentItem>,
@@ -147,11 +148,12 @@ pub struct SearchResult {
 impl SearchResult {
   /// Creates a new search result.
   pub fn new(
+    time_sec: f64,
     files: Vec<FileItem>,
     file_matches: Matched,
     content: Vec<ContentItem>,
     content_matches: Matched
   ) -> Self {
-    Self { files, file_matches, content, content_matches }
+    Self { time_sec, files, file_matches, content, content_matches }
   }
 }
