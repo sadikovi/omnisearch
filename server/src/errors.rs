@@ -7,7 +7,6 @@ use std::sync::mpsc;
 
 use grep::regex::{Error as GrepRegexError};
 use grep::searcher::SinkError;
-use json::{Error as JsonError};
 use regex::{Error as RegexError};
 
 /// General error struct.
@@ -37,36 +36,30 @@ impl fmt::Display for Error {
 
 impl SinkError for Error {
   fn error_message<T: fmt::Display>(message: T) -> Self {
-    Self::new(format!("Sink error: {}", message))
+    Self::new(message.to_string())
   }
 }
 
 impl<T> convert::From<mpsc::SendError<T>> for Error {
   fn from(value: mpsc::SendError<T>) -> Self {
-    Error::new(format!("Channel error: {}", value))
+    Error::new(value.to_string())
   }
 }
 
 impl convert::From<io::Error> for Error {
   fn from(value: io::Error) -> Self {
-    Error::new(format!("IO error: {}", value))
+    Error::new(value.to_string())
   }
 }
 
 impl convert::From<GrepRegexError> for Error {
   fn from(value: GrepRegexError) -> Self {
-    Error::new(format!("Regex error: {}", value))
+    Error::new(value.to_string())
   }
 }
 
 impl convert::From<RegexError> for Error {
   fn from(value: RegexError) -> Self {
-    Error::new(format!("Regex error: {}", value))
-  }
-}
-
-impl convert::From<JsonError> for Error {
-  fn from(value: JsonError) -> Self {
-    Error::new(format!("JSON error: {}", value))
+    Error::new(value.to_string())
   }
 }

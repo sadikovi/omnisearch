@@ -12,7 +12,9 @@ repository = "https://github.com/sadikovi/omnisearch"
 keywords = ["atom", "search", "livegrep"]
 
 [dependencies]
+futures = "0.1"
 grep = "0.2"
+hyper = "0.12"
 ignore = "0.4"
 regex = "1"
 serde = "1.0"
