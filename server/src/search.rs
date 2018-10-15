@@ -6,7 +6,7 @@ use std::time;
 
 use errors;
 use ext::{Extension, Extensions};
-use grep::regex::RegexMatcher;
+use grep::regex::RegexMatcherBuilder;
 use grep::searcher::*;
 use ignore::{WalkBuilder, WalkState};
 use regex::RegexBuilder;
@@ -158,7 +158,11 @@ pub fn find(
     .multi_line(false)
     .build();
 
-  let content_matcher = RegexMatcher::new_line_matcher(pattern)?;
+  let content_matcher = RegexMatcherBuilder::new()
+    .line_terminator(Some(b'\n'))
+    .multi_line(false)
+    .case_smart(true)
+    .build(pattern)?;
 
   let file_matcher = RegexBuilder::new(pattern)
     .case_insensitive(true)
