@@ -19,6 +19,6 @@
     "omnisearch/search-view/SearchView": "deserialize"
   },
   "scripts": {
-    "install": "cd ./server && cargo build --release"
+    "install": "./bin/install.sh"
   }
 }
