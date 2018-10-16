@@ -43,8 +43,7 @@ pub struct ContentLine {
   kind: ContentKind,
   num: u64,
   bytes: Vec<u8>,
-  start: Option<usize>,
-  end: Option<usize>,
+  range: Option<(usize, usize)>,
   truncated: bool
 }
 
@@ -60,18 +59,28 @@ impl ContentLine {
       (bytes.to_vec(), false)
     } else {
       let mut vec = Vec::with_capacity(MAX_LENGTH);
-      vec.extend_from_slice(&bytes[..MAX_PREFIX_LENGTH]);
-      vec.extend_from_slice(&[b'.', b'.', b'.']);
-      vec.extend_from_slice(&bytes[len - MAX_SUFFIX_LENGTH..len]);
+      if start.is_some() && end.is_some() {
+        // TODO: Add proper truncation mechanism
+        vec.extend_from_slice(bytes);
+      } else {
+        vec.extend_from_slice(&bytes[..MAX_PREFIX_LENGTH]);
+        vec.extend_from_slice(&[b'.', b'.', b'.']);
+        vec.extend_from_slice(&bytes[len - MAX_SUFFIX_LENGTH..len]);
+      }
       (vec, true)
+    };
+
+    let range = if start.is_some() && end.is_some() {
+      Some((start.unwrap(), end.unwrap()))
+    } else {
+      None
     };
 
     Self {
       kind: kind,
       num: line_number,
       bytes: all_bytes,
-      start: start,
-      end: end,
+      range: range,
       truncated: is_truncated
     }
   }
@@ -87,12 +96,21 @@ impl Serialize for ContentLine {
     let mut s = serializer.serialize_struct("ContentLine", 4)?;
     s.serialize_field("kind", &self.kind)?;
     s.serialize_field("num", &self.num)?;
-    s.serialize_field("bytes", &String::from_utf8_lossy(&self.bytes))?;
-    if let Some(start) = self.start {
-      s.serialize_field("start", &start)?;
-    }
-    if let Some(end) = self.end {
-      s.serialize_field("end", &end)?;
+    if let Some((start, end)) = self.range {
+      s.serialize_field(
+        "before_bytes",
+        &String::from_utf8_lossy(&self.bytes[0..start])
+      )?;
+      s.serialize_field(
+        "bytes",
+        &String::from_utf8_lossy(&self.bytes[start..end])
+      )?;
+      s.serialize_field(
+        "after_bytes",
+        &String::from_utf8_lossy(&self.bytes[end..])
+      )?;
+    } else {
+      s.serialize_field("bytes", &String::from_utf8_lossy(&self.bytes))?;
     }
     s.serialize_field("truncated", &self.truncated)?;
     s.end()
