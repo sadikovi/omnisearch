@@ -43,13 +43,18 @@ pub struct ContentLine {
   kind: ContentKind,
   num: u64,
   bytes: Vec<u8>,
+  start: Option<usize>,
+  end: Option<usize>,
   truncated: bool
 }
 
 impl ContentLine {
   /// Creates new content line.
   /// Also checks if bytes exceed max length and truncates if necessary.
-  pub fn new(kind: ContentKind, line_number: u64, bytes: &[u8]) -> Self {
+  pub fn new(
+    kind: ContentKind, line_number: u64, bytes: &[u8],
+    start: Option<usize>, end: Option<usize>
+  ) -> Self {
     let len = bytes.len();
     let (all_bytes, is_truncated) = if len < MAX_LENGTH {
       (bytes.to_vec(), false)
@@ -65,8 +70,15 @@ impl ContentLine {
       kind: kind,
       num: line_number,
       bytes: all_bytes,
+      start: start,
+      end: end,
       truncated: is_truncated
     }
+  }
+
+  /// Creates new content line without match range.
+  pub fn without_match(kind: ContentKind, line_number: u64, bytes: &[u8]) -> Self {
+    Self::new(kind, line_number, bytes, None, None)
   }
 }
 
@@ -76,6 +88,12 @@ impl Serialize for ContentLine {
     s.serialize_field("kind", &self.kind)?;
     s.serialize_field("num", &self.num)?;
     s.serialize_field("bytes", &String::from_utf8_lossy(&self.bytes))?;
+    if let Some(start) = self.start {
+      s.serialize_field("start", &start)?;
+    }
+    if let Some(end) = self.end {
+      s.serialize_field("end", &end)?;
+    }
     s.serialize_field("truncated", &self.truncated)?;
     s.end()
   }

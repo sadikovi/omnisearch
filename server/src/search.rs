@@ -6,7 +6,8 @@ use std::time;
 
 use errors;
 use ext::{Extension, Extensions};
-use grep::regex::RegexMatcherBuilder;
+use grep::matcher::Matcher;
+use grep::regex::{RegexMatcher, RegexMatcherBuilder};
 use grep::searcher::*;
 use ignore::{WalkBuilder, WalkState};
 use regex::RegexBuilder;
@@ -27,7 +28,9 @@ pub struct Collector {
   path: String,
   ext: Extension,
   lines: Vec<ContentLine>,
-  matches: Vec<ContentMatch>
+  matches: Vec<ContentMatch>,
+  // Used to find location of the match
+  matcher: RegexMatcher
 }
 
 impl Collector {
@@ -36,6 +39,7 @@ impl Collector {
     sx: mpsc::Sender<ContentItem>,
     counter: Arc<AtomicUsize>,
     path: String,
+    matcher: RegexMatcher,
     ext: Extension
   ) -> Self {
     Self {
@@ -44,7 +48,8 @@ impl Collector {
       path: path,
       ext: ext,
       lines: Vec::with_capacity(32),
-      matches: Vec::with_capacity(32)
+      matches: Vec::with_capacity(32),
+      matcher: matcher
     }
   }
 
@@ -65,7 +70,11 @@ impl Sink for Collector {
   fn matched(&mut self, _: &Searcher, mat: &SinkMatch) -> Result<bool, Self::Error> {
     if let Some(line_number) = mat.line_number() {
       self.counter.fetch_add(1, Ordering::Relaxed);
-      let line = ContentLine::new(ContentKind::Match, line_number, mat.bytes());
+      let loc = self.matcher.find(mat.bytes())?;
+      let start = loc.map(|m| m.start());
+      let end = loc.map(|m| m.end());
+      let line =
+        ContentLine::new(ContentKind::Match, line_number, mat.bytes(), start, end);
       self.lines.push(line);
       Ok(true)
     } else {
@@ -77,11 +86,13 @@ impl Sink for Collector {
     if let Some(line_number) = ctx.line_number() {
       match ctx.kind() {
         SinkContextKind::Before => {
-          let line = ContentLine::new(ContentKind::Before, line_number, ctx.bytes());
+          let line =
+            ContentLine::without_match(ContentKind::Before, line_number, ctx.bytes());
           self.lines.push(line);
         },
         SinkContextKind::After => {
-          let line = ContentLine::new(ContentKind::After, line_number, ctx.bytes());
+          let line =
+            ContentLine::without_match(ContentKind::After, line_number, ctx.bytes());
           self.lines.push(line);
         },
         // pass-through case
@@ -230,6 +241,7 @@ pub fn find(
                 csx.clone(),
                 content_counter.clone(),
                 fpath.to_owned(),
+                matcher.clone(),
                 ext
               );
               searcher.search_path(matcher, inode.path(), collector).unwrap();

@@ -5,6 +5,7 @@ use std::fmt;
 use std::io;
 use std::sync::mpsc;
 
+use grep::matcher::{NoError as MatchError};
 use grep::regex::{Error as GrepRegexError};
 use grep::searcher::SinkError;
 use json::{Error as JsonError};
@@ -68,5 +69,11 @@ impl convert::From<RegexError> for Error {
 impl convert::From<JsonError> for Error {
   fn from(value: JsonError) -> Self {
     Error::new(format!("JSON error: {}", value))
+  }
+}
+
+impl convert::From<MatchError> for Error {
+  fn from(value: MatchError) -> Self {
+    Error::new(format!("Match error: {}", value))
   }
 }
