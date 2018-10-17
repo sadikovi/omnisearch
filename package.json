@@ -1,7 +1,7 @@
 {
   "name": "omnisearch",
   "main": "./lib/main",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Atom search with livegrep functionality",
   "author": "Ivan Sadikov",
   "keywords": [
