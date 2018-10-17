@@ -184,7 +184,7 @@ pub fn find(
   let (csx, crx) = mpsc::channel::<ContentItem>();
 
   let files_thread = thread::spawn(move || {
-    let mut vec = Vec::new();
+    let mut vec = Vec::with_capacity(FILE_MAX_MATCHES * 2);
     for result in frx {
       vec.push(result);
     }
@@ -192,7 +192,7 @@ pub fn find(
   });
 
   let content_thread = thread::spawn(move || {
-    let mut vec = Vec::new();
+    let mut vec = Vec::with_capacity(CONTENT_MAX_MATCHES * 2);
     for result in crx {
       vec.push(result);
     }
