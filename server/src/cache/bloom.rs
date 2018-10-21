@@ -56,6 +56,17 @@ impl BloomFilter {
     (1.0 - std::f32::consts::E.powf(-k*n/m)).powf(k)
   }
 
+  // Number of bytes that this filter takes in memory.
+  pub fn size(&self) -> u64 {
+    // m + k + bit vector + cardinality
+    4u64 + 4u64 + self.bv.len() as u64 + 4u64
+  }
+
+  // Returns filter cardinality.
+  pub fn cardinality(&self) -> usize {
+    self.cardinality as usize
+  }
+
   #[inline]
   fn set_bit(&mut self, idx: usize) {
     let byte_idx = idx / 8;

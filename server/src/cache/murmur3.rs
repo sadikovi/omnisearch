@@ -100,7 +100,7 @@ mod tests {
       let hash = murmur3_32(&vec![i as u8], 256 - i);
       buffer.extend_from_slice(&write_u32_le!(hash));
     }
-    let result = murmur3_32(&buffer[..], 0);
+    let _result = murmur3_32(&buffer[..], 0);
     // assert_eq!(result, 0xB0F57EE3);
   }
 
