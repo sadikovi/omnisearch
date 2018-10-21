@@ -8,6 +8,7 @@ extern crate serde_json as json;
 #[macro_use]
 extern crate serde_derive;
 
+pub mod cache;
 #[macro_use]
 pub mod errors;
 pub mod ext;
