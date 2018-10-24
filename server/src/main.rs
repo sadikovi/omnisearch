@@ -2,7 +2,6 @@ extern crate futures;
 extern crate grep;
 extern crate hyper;
 extern crate ignore;
-extern crate regex;
 extern crate serde;
 extern crate serde_json as json;
 #[macro_use]
@@ -26,7 +25,7 @@ type BoxFuture = Box<Future<Item=Response<Body>, Error=hyper::Error> + Send>;
 
 /// Function to search and return JSON result.
 fn get_search_results(params: params::QueryParams) -> Result<String, errors::Error> {
-  let res = search::find(params.dir(), params.pattern(), Vec::new())?;
+  let res = search::find(params.dir(), params.pattern(), params.use_regex(), Vec::new())?;
   let json_str = json::to_string(&res)?;
   Ok(json_str)
 }

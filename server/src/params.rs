@@ -4,7 +4,8 @@ use std::path::Path;
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct QueryParams {
   dir: String,
-  pattern: String
+  pattern: String,
+  use_regex: Option<bool>
 }
 
 impl QueryParams {
@@ -16,5 +17,10 @@ impl QueryParams {
   /// Returns search pattern.
   pub fn pattern(&self) -> &str {
     &self.pattern
+  }
+
+  /// Use regex flag.
+  pub fn use_regex(&self) -> bool {
+    self.use_regex.unwrap_or(false)
   }
 }

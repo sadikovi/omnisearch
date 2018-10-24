@@ -9,7 +9,6 @@ use grep::matcher::{NoError as MatchError};
 use grep::regex::{Error as GrepRegexError};
 use grep::searcher::SinkError;
 use json::{Error as JsonError};
-use regex::{Error as RegexError};
 
 /// General error struct.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -56,12 +55,6 @@ impl convert::From<io::Error> for Error {
 
 impl convert::From<GrepRegexError> for Error {
   fn from(value: GrepRegexError) -> Self {
-    Error::new(format!("Regex error: {}", value))
-  }
-}
-
-impl convert::From<RegexError> for Error {
-  fn from(value: RegexError) -> Self {
     Error::new(format!("Regex error: {}", value))
   }
 }
