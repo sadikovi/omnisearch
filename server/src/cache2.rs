@@ -3,11 +3,10 @@ use std::fs::File;
 use std::io::Read;
 use std::mem::size_of_val;
 use std::path::Path;
-use std::sync::mpsc;
-use std::sync::Arc;
-use std::sync::Mutex;
+use std::sync::{mpsc, Arc, Mutex};
 use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
 use std::thread;
+use std::time::Duration;
 
 use errors;
 use ignore::WalkBuilder;
@@ -17,7 +16,9 @@ const DEFAULT_HASH_MAP_CAPACITY: usize = 64;
 // Default thread pool size.
 const DEFAULT_THREAD_POOL_SIZE: usize = 4;
 // Min size in bytes to enable caching of the file.
-const MIN_SIZE_TO_CACHE: u64 = 20_000;
+const MIN_BYTES_TO_CACHE: u64 = 20_000;
+// Number of seconds after which trigger cache refresh.
+const CACHE_POLL_INTERVAL_SECS: u64 = 5;
 
 // Global txid sequence
 static GLOBAL_INDEX_SEQ: AtomicUsize = ATOMIC_USIZE_INIT;
@@ -141,7 +142,7 @@ impl FileIndex {
 // File Index Tree
 ///////////////////////////////////////////////////////////
 
-#[derive(Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FileIndexTreeStatistics {
   memory_used: usize,
   num_entries: usize,
@@ -201,8 +202,8 @@ impl FileIndexTree {
   pub fn add(&mut self, path: &Path) -> Result<(), errors::Error> {
     if let Some(p) = path.to_str() {
       let mut file = File::open(path)?;
-      if file.metadata()?.len() >= MIN_SIZE_TO_CACHE {
-        let mut content = Vec::with_capacity(MIN_SIZE_TO_CACHE as usize);
+      if file.metadata()?.len() >= MIN_BYTES_TO_CACHE {
+        let mut content = Vec::with_capacity(MIN_BYTES_TO_CACHE as usize);
         file.read_to_end(&mut content)?;
         self.entries.insert(p.to_owned(), Some(FileIndex::new(content)));
       } else {
@@ -218,7 +219,7 @@ impl FileIndexTree {
   pub fn stats(&self) -> FileIndexTreeStatistics {
     let indexed = self.entries.values().filter(|entry| entry.is_some()).count();
     let total = self.entries.len();
-    let fraction = indexed as f32 / total as f32;
+    let fraction = if total == 0 { 0f32 } else { indexed as f32 / total as f32 };
     FileIndexTreeStatistics::new(size_of_val(self), total, fraction)
   }
 
@@ -232,7 +233,7 @@ impl FileIndexTree {
 // Cache
 ///////////////////////////////////////////////////////////
 
-#[derive(Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CacheStatistics {
   memory_used: usize,
   trees: Vec<FileIndexTreeStatistics>
@@ -260,7 +261,7 @@ type SharedCache = Arc<Mutex<Cache>>;
 // Global cache that keeps track of paths and their corresponding index trees.
 pub struct Cache {
   // Map of path to index.
-  index: HashMap<String, FileIndexTree>
+  index: HashMap<String, Arc<FileIndexTree>>
 }
 
 impl Cache {
@@ -274,7 +275,7 @@ impl Cache {
   // Adds index to the cache with deferred execution.
   // This does not block the thread to build an index.
   pub fn add_index(&mut self, path: &Path) -> Result<(), errors::Error> {
-    self.upsert_index(path, FileIndexTree::new())
+    self.upsert_index(path, Arc::new(FileIndexTree::new()))
   }
 
   // Adds new index, or updates existing one.
@@ -283,7 +284,7 @@ impl Cache {
   fn upsert_index(
     &mut self,
     path: &Path,
-    idx: FileIndexTree
+    idx: Arc<FileIndexTree>
   ) -> Result<(), errors::Error> {
     if let Some(p) = path.to_str() {
       let txid = self.index.get(p).map(|prev| prev.txid());
@@ -298,21 +299,16 @@ impl Cache {
   }
 
   // Returns optional index if available, otherwise None.
-  pub fn get_index(&self, path: &Path) -> Option<&FileIndexTree> {
+  pub fn get_index(&self, path: &Path) -> Option<Arc<FileIndexTree>> {
     match path.to_str() {
-      Some(p) => self.index.get(p),
+      Some(p) => self.index.get(p).map(|rf| rf.clone()),
       None => None
     }
   }
 
   // Removes index if it exists, otherwise is no-op.
   pub fn remove_index(&mut self, path: &Path) -> Result<(), errors::Error> {
-    self.upsert_index(path, FileIndexTree::new())
-  }
-
-  // Returns the amount of memory used by cache.
-  pub fn memory_used(&self) -> usize {
-    size_of_val(self)
+    self.upsert_index(path, Arc::new(FileIndexTree::new()))
   }
 
   // Returns list of paths in the cache.
@@ -327,17 +323,37 @@ impl Cache {
 
   // Returns statistics of the cache
   pub fn stats(&self) -> CacheStatistics {
-    let mut fits = Vec::with_capacity(self.index.len());
+    let mut stats = Vec::with_capacity(self.index.len());
     let mut iter = self.index.values();
     while let Some(value) = iter.next() {
-      fits.push(value.stats());
+      stats.push(value.stats());
     }
-    CacheStatistics::new(size_of_val(self), fits)
+    CacheStatistics::new(size_of_val(self), stats)
   }
 }
 
+// Creates shared cache.
+pub fn create_cache() -> SharedCache {
+  Arc::new(Mutex::new(Cache::new()))
+}
+
+pub fn periodic_refresh(cache: &SharedCache) -> ThreadPool {
+  let thread_pool = ThreadPool::new(1);
+  let arc = cache.clone();
+  thread_pool.execute(move || {
+    loop {
+      let res = refresh(&arc);
+      if let Err(error) = res {
+        println!("WARN Error during periodic refresh: {}", error);
+      }
+      thread::sleep(Duration::from_secs(CACHE_POLL_INTERVAL_SECS));
+    }
+  });
+  thread_pool
+}
+
 // Refresh cache entries.
-pub fn refresh(cache: SharedCache) -> Result<(), errors::Error> {
+fn refresh(cache: &SharedCache) -> Result<(), errors::Error> {
   let paths = {
     let cache = cache.lock()?;
     cache.paths()
@@ -347,29 +363,38 @@ pub fn refresh(cache: SharedCache) -> Result<(), errors::Error> {
   for path in paths {
     let arc = cache.clone();
     thread_pool.execute(move || {
-      // This should match files similar to search module.
-      let path = Path::new(&path);
-      let mut walk = WalkBuilder::new(path)
-        .follow_links(false)
-        .standard_filters(true)
-        .same_file_system(true)
-        .build();
-
-      let mut tree = FileIndexTree::new();
-      while let Some(res) = walk.next() {
-        if let Ok(entry) = res {
-          if entry.path().is_file() {
-            // build index
-            tree.add(entry.path()).unwrap();
-          }
-        }
+      let path_ref = Path::new(&path);
+      if let Err(error) = refresh_func(arc, path_ref) {
+        println!("WARN Error during refresh: {}", error);
+      } else {
+        println!("INFO Cache updated for {}", path);
       }
-
-      // Update index for a path.
-      let mut cache = arc.lock().unwrap();
-      let _ = cache.upsert_index(path, tree);
     });
   }
 
   Ok(())
+}
+
+// Closure for refreshing cache entries.
+fn refresh_func(arc: SharedCache, path: &Path) -> Result<(), errors::Error> {
+  // This should match files similar to search module.
+  let mut walk = WalkBuilder::new(path)
+    .follow_links(false)
+    .standard_filters(true)
+    .same_file_system(true)
+    .build();
+
+  let mut tree = FileIndexTree::new();
+  while let Some(res) = walk.next() {
+    if let Ok(entry) = res {
+      if entry.path().is_file() {
+        // build index
+        tree.add(entry.path())?;
+      }
+    }
+  }
+
+  // Update index for a path.
+  let mut cache = arc.lock()?;
+  cache.upsert_index(path, Arc::new(tree))
 }
