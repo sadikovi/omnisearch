@@ -3,7 +3,7 @@
 use std::convert;
 use std::fmt;
 use std::io;
-use std::sync::mpsc;
+use std::sync::{mpsc, PoisonError};
 
 use grep::matcher::{NoError as MatchError};
 use grep::regex::{Error as GrepRegexError};
@@ -68,5 +68,11 @@ impl convert::From<JsonError> for Error {
 impl convert::From<MatchError> for Error {
   fn from(value: MatchError) -> Self {
     Error::new(format!("Match error: {}", value))
+  }
+}
+
+impl<T> convert::From<PoisonError<T>> for Error {
+  fn from(value: PoisonError<T>) -> Self {
+    Error::new(format!("Thread lock error: {}", value))
   }
 }
