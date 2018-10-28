@@ -4,12 +4,14 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::thread;
 use std::time;
 
+use cache2;
 use errors;
 use ext::{Extension, Extensions};
 use grep::matcher::{Match, Matcher, NoCaptures};
 use grep::regex::{RegexMatcher, RegexMatcherBuilder};
 use grep::searcher::*;
 use ignore::{WalkBuilder, WalkState};
+use params;
 use result::*;
 
 // Maximum number of files we collect.
@@ -56,7 +58,7 @@ impl Matcher for DirectMatcher {
 }
 
 #[derive(Clone)]
-struct MatcherSpec {
+pub struct MatcherSpec {
   direct: Option<DirectMatcher>,
   regex: Option<RegexMatcher>
 }
@@ -224,35 +226,26 @@ impl Sink for Collector {
 
 // Perform search within provided directory using provided pattern
 pub fn find(
-  dir: &Path,
-  pattern: &str,
-  use_regex: bool,
-  extensions: Vec<Extension>
+  cache: &cache2::SharedCache,
+  params: params::QueryParams
 ) -> Result<SearchResult, errors::Error> {
   let start_time = time::Instant::now();
 
-  let dir = dir.canonicalize()?;
+  let dir = params.dir().canonicalize()?;
   let path = dir.as_path();
   if !path.is_dir() {
     return err!("Path {} is not a directory", path.to_str().unwrap_or(""));
   }
 
-  if pattern.len() == 0 {
+  if params.pattern().len() == 0 {
     return err!("Empty pattern, expected a valid search word or regular expression");
   }
 
-  // Set of extensions to check against.
-  let ext_check = if extensions.len() > 0 {
-    Extensions::with_extensions(extensions)
-  } else {
-    Extensions::all()
-  };
+  // Check if we can use cache
+  let use_cache = params.use_cache() && cache2::contains_cache(cache, path)?;
 
-  let walker = WalkBuilder::new(path)
-    .follow_links(false)
-    .standard_filters(true)
-    .same_file_system(true)
-    .build_parallel();
+  // Set of extensions to check against.
+  let ext_check = Extensions::all();
 
   let searcher = SearcherBuilder::new()
     .line_number(true)
@@ -261,16 +254,16 @@ pub fn find(
     .multi_line(false)
     .build();
 
-  let content_matcher = if use_regex {
+  let content_matcher = if params.use_regex() {
     MatcherSpec::regex(
       RegexMatcherBuilder::new()
         .line_terminator(Some(b'\n'))
         .multi_line(false)
         .case_smart(true)
-        .build(pattern)?
+        .build(params.pattern())?
     )
   } else {
-    MatcherSpec::direct(DirectMatcher::new(pattern))
+    MatcherSpec::direct(DirectMatcher::new(params.pattern()))
   };
 
   let (fsx, frx) = mpsc::channel::<FileItem>();
@@ -294,6 +287,54 @@ pub fn find(
 
   let content_counter = Arc::new(AtomicUsize::new(0));
   let file_counter = Arc::new(AtomicUsize::new(0));
+
+  if use_cache {
+    cache2::search(cache, searcher, content_matcher, path, ext_check,
+      file_counter, content_counter, &fsx, &csx)?;
+  } else {
+    search(searcher, content_matcher, path, ext_check,
+      file_counter, content_counter, &fsx, &csx);
+  }
+
+  drop(fsx);
+  let files = files_thread.join().unwrap();
+  drop(csx);
+  let content = content_thread.join().unwrap();
+
+  let file_matches = if files.len() <= FILE_MAX_MATCHES {
+    Matched::Exact(files.len())
+  } else {
+    Matched::AtLeast(files.len())
+  };
+
+  let content_matches = if content.len() <= CONTENT_MAX_MATCHES {
+    Matched::Exact(content.len())
+  } else {
+    Matched::AtLeast(content.len())
+  };
+
+  let duration = start_time.elapsed();
+  let exec_time = duration.as_secs() as f64 + duration.subsec_nanos() as f64 * 1e-9;
+
+  Ok(SearchResult::new(exec_time, files, file_matches, content, content_matches))
+}
+
+// Internal function to start search.
+fn search(
+  searcher: Searcher,
+  content_matcher: MatcherSpec,
+  path: &Path,
+  ext_check: Extensions,
+  file_counter: Arc<AtomicUsize>,
+  content_counter: Arc<AtomicUsize>,
+  fsx: &mpsc::Sender<FileItem>,
+  csx: &mpsc::Sender<ContentItem>
+) {
+  let walker = WalkBuilder::new(path)
+    .follow_links(false)
+    .standard_filters(true)
+    .same_file_system(true)
+    .build_parallel();
 
   walker.run(|| {
     let fsx = fsx.clone();
@@ -357,26 +398,4 @@ pub fn find(
       }
     })
   });
-
-  drop(fsx);
-  let files = files_thread.join().unwrap();
-  drop(csx);
-  let content = content_thread.join().unwrap();
-
-  let file_matches = if files.len() <= FILE_MAX_MATCHES {
-    Matched::Exact(files.len())
-  } else {
-    Matched::AtLeast(files.len())
-  };
-
-  let content_matches = if content.len() <= CONTENT_MAX_MATCHES {
-    Matched::Exact(content.len())
-  } else {
-    Matched::AtLeast(content.len())
-  };
-
-  let duration = start_time.elapsed();
-  let exec_time = duration.as_secs() as f64 + duration.subsec_nanos() as f64 * 1e-9;
-
-  Ok(SearchResult::new(exec_time, files, file_matches, content, content_matches))
 }

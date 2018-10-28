@@ -9,8 +9,11 @@ use std::thread;
 use std::time::Duration;
 
 use errors;
+use grep::searcher::Searcher;
 use ext::{Extension, Extensions};
 use ignore::WalkBuilder;
+use result::{ContentItem, FileItem};
+use search::MatcherSpec;
 
 // Default hashmap capacity.
 const DEFAULT_HASH_MAP_CAPACITY: usize = 64;
@@ -311,7 +314,7 @@ impl CacheStatistics {
   }
 }
 
-type SharedCache = Arc<Mutex<Cache>>;
+pub type SharedCache = Arc<Mutex<Cache>>;
 
 // Global cache that keeps track of paths and their corresponding index trees.
 pub struct Cache {
@@ -361,6 +364,14 @@ impl Cache {
     }
   }
 
+  // Returns true, if path is cached.
+  pub fn contains(&self, path: &Path) -> bool {
+    match path.to_str() {
+      Some(p) => self.index.contains_key(p),
+      None => false
+    }
+  }
+
   // Removes index if it exists, otherwise is no-op.
   pub fn remove_index(&mut self, path: &Path) -> Result<(), errors::Error> {
     self.upsert_index(path, Arc::new(FileIndexTree::new()))
@@ -392,6 +403,48 @@ pub fn create_cache() -> SharedCache {
   Arc::new(Mutex::new(Cache::new()))
 }
 
+// Returns true if path contains in the cache.
+pub fn contains_cache(cache: &SharedCache, path: &Path) -> Result<bool, errors::Error> {
+  let cache = cache.lock()?;
+  Ok(cache.contains(path))
+}
+
+// Returns cache statistics.
+pub fn cache_stats(cache: &SharedCache) -> Result<CacheStatistics, errors::Error> {
+  let cache = cache.lock()?;
+  Ok(cache.stats())
+}
+
+// Adds entry to the cache.
+pub fn update_cache(cache: &SharedCache, path: &Path) -> Result<(), errors::Error> {
+  let mut cache = cache.lock()?;
+  cache.add_index(path)
+}
+
+// Internal function to start search.
+pub fn search(
+  cache: &SharedCache,
+  searcher: Searcher,
+  content_matcher: MatcherSpec,
+  path: &Path,
+  ext_check: Extensions,
+  file_counter: Arc<AtomicUsize>,
+  content_counter: Arc<AtomicUsize>,
+  fsx: &mpsc::Sender<FileItem>,
+  csx: &mpsc::Sender<ContentItem>
+) -> Result<(), errors::Error> {
+  let index_opt = {
+    let arc = cache.lock()?;
+    arc.get_index(path)
+  };
+
+  if let Some(index) = index_opt {
+    // Start search
+  }
+
+  unimplemented!();
+}
+
 pub fn periodic_refresh(cache: &SharedCache) -> ThreadPool {
   let thread_pool = ThreadPool::new(1);
   let arc = cache.clone();
@@ -399,7 +452,7 @@ pub fn periodic_refresh(cache: &SharedCache) -> ThreadPool {
     loop {
       let res = refresh_sync(&arc);
       if let Err(error) = res {
-        println!("WARN Error during periodic refresh: {}", error);
+        eprintln!("# ERROR Error during periodic refresh: {}", error);
       }
       thread::sleep(Duration::from_secs(CACHE_POLL_INTERVAL_SECS));
     }
@@ -420,9 +473,7 @@ pub fn refresh_sync(cache: &SharedCache) -> Result<(), errors::Error> {
     thread_pool.execute(move || {
       let path_ref = Path::new(&path);
       if let Err(error) = refresh_func(arc, path_ref) {
-        println!("WARN Error during refresh: {}", error);
-      } else {
-        println!("INFO Cache updated for {}", path);
+        eprintln!("# ERROR Error during refresh: {}", error);
       }
     });
   }
