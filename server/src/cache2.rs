@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
-use std::mem::size_of_val;
+use std::mem::size_of;
 use std::path::Path;
 use std::sync::{mpsc, Arc, Mutex};
 use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
@@ -16,7 +16,7 @@ const DEFAULT_HASH_MAP_CAPACITY: usize = 64;
 // Default thread pool size.
 const DEFAULT_THREAD_POOL_SIZE: usize = 4;
 // Min size in bytes to enable caching of the file.
-const MIN_BYTES_TO_CACHE: u64 = 20_000;
+const MIN_BYTES_TO_CACHE: u64 = 10_000;
 // Number of seconds after which trigger cache refresh.
 const CACHE_POLL_INTERVAL_SECS: u64 = 5;
 
@@ -118,6 +118,49 @@ impl Worker {
 }
 
 ///////////////////////////////////////////////////////////
+// Memory size
+///////////////////////////////////////////////////////////
+
+trait MemoryUsed {
+  // Returns size in bytes.
+  fn memory_used(&self) -> usize;
+}
+
+impl MemoryUsed for String {
+  fn memory_used(&self) -> usize {
+    self.as_bytes().len()
+  }
+}
+
+impl<T: MemoryUsed> MemoryUsed for Option<T> {
+  fn memory_used(&self) -> usize {
+    self.as_ref().map(|inner| inner.memory_used()).unwrap_or(0)
+  }
+}
+
+impl MemoryUsed for FileIndex {
+  fn memory_used(&self) -> usize {
+    size_of::<FileIndex>() + size_of::<Vec<u8>>() + self.content.len()
+  }
+}
+
+impl MemoryUsed for FileIndexTree {
+  fn memory_used(&self) -> usize {
+    size_of::<FileIndexTree>() + self.entries.iter().fold(0, |n, (key, value)| {
+      n + key.memory_used() + value.memory_used()
+    })
+  }
+}
+
+impl MemoryUsed for Cache {
+  fn memory_used(&self) -> usize {
+    size_of::<Cache>() + self.index.iter().fold(0, |n, (key, value)| {
+      n + key.memory_used() + value.memory_used()
+    })
+  }
+}
+
+///////////////////////////////////////////////////////////
 // File Index
 ///////////////////////////////////////////////////////////
 
@@ -144,6 +187,7 @@ impl FileIndex {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FileIndexTreeStatistics {
+  txid: usize,
   memory_used: usize,
   num_entries: usize,
   indexed_fraction: f32
@@ -151,8 +195,18 @@ pub struct FileIndexTreeStatistics {
 
 impl FileIndexTreeStatistics {
   // Creates new file index tree statistics.
-  pub fn new(memory_used: usize, num_entries: usize, indexed_fraction: f32) -> Self {
-    Self { memory_used, num_entries, indexed_fraction }
+  pub fn new(
+    txid: usize,
+    memory_used: usize,
+    num_entries: usize,
+    indexed_fraction: f32
+  ) -> Self {
+    Self { txid, memory_used, num_entries, indexed_fraction }
+  }
+
+  // Returns txid of the file index tree.
+  pub fn txid(&self) -> usize {
+    self.txid
   }
 
   // Memory used by file index tree.
@@ -220,7 +274,7 @@ impl FileIndexTree {
     let indexed = self.entries.values().filter(|entry| entry.is_some()).count();
     let total = self.entries.len();
     let fraction = if total == 0 { 0f32 } else { indexed as f32 / total as f32 };
-    FileIndexTreeStatistics::new(size_of_val(self), total, fraction)
+    FileIndexTreeStatistics::new(self.txid(), self.memory_used(), total, fraction)
   }
 
   // List of entries.
@@ -328,7 +382,7 @@ impl Cache {
     while let Some(value) = iter.next() {
       stats.push(value.stats());
     }
-    CacheStatistics::new(size_of_val(self), stats)
+    CacheStatistics::new(self.memory_used(), stats)
   }
 }
 
@@ -342,7 +396,7 @@ pub fn periodic_refresh(cache: &SharedCache) -> ThreadPool {
   let arc = cache.clone();
   thread_pool.execute(move || {
     loop {
-      let res = refresh(&arc);
+      let res = refresh_sync(&arc);
       if let Err(error) = res {
         println!("WARN Error during periodic refresh: {}", error);
       }
@@ -353,7 +407,7 @@ pub fn periodic_refresh(cache: &SharedCache) -> ThreadPool {
 }
 
 // Refresh cache entries.
-fn refresh(cache: &SharedCache) -> Result<(), errors::Error> {
+pub fn refresh_sync(cache: &SharedCache) -> Result<(), errors::Error> {
   let paths = {
     let cache = cache.lock()?;
     cache.paths()
