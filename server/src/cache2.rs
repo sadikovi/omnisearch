@@ -9,6 +9,7 @@ use std::thread;
 use std::time::Duration;
 
 use errors;
+use ext::{Extension, Extensions};
 use ignore::WalkBuilder;
 
 // Default hashmap capacity.
@@ -438,12 +439,22 @@ fn refresh_func(arc: SharedCache, path: &Path) -> Result<(), errors::Error> {
     .same_file_system(true)
     .build();
 
+  // Cache all extensions.
+  let extensions = Extensions::all();
+
   let mut tree = FileIndexTree::new();
   while let Some(res) = walk.next() {
     if let Ok(entry) = res {
       if entry.path().is_file() {
-        // build index
-        tree.add(entry.path())?;
+        let ext = entry.path().extension()
+          .and_then(|os| os.to_str())
+          .unwrap_or("")
+          .parse::<Extension>()
+          .unwrap();
+        if extensions.is_supported_extension(ext) {
+          // build index
+          tree.add(entry.path())?;
+        }
       }
     }
   }

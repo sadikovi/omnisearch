@@ -245,7 +245,7 @@ pub fn find(
   let ext_check = if extensions.len() > 0 {
     Extensions::with_extensions(extensions)
   } else {
-    Extensions::new()
+    Extensions::all()
   };
 
   let walker = WalkBuilder::new(path)

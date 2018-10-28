@@ -139,7 +139,7 @@ pub struct Extensions {
 
 impl Extensions {
   /// Creates new set with all supported extensions, except UNKNOWN.
-  pub fn new() -> Self {
+  pub fn all() -> Self {
     let extensions = vec![
       Extension::BZL,
       Extension::C,
