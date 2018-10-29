@@ -3,6 +3,7 @@
 use std::convert;
 use std::fmt;
 use std::io;
+use std::str::Utf8Error;
 use std::sync::{mpsc, PoisonError};
 
 use grep::matcher::{NoError as MatchError};
@@ -74,5 +75,11 @@ impl convert::From<MatchError> for Error {
 impl<T> convert::From<PoisonError<T>> for Error {
   fn from(value: PoisonError<T>) -> Self {
     Error::new(format!("Thread lock error: {}", value))
+  }
+}
+
+impl convert::From<Utf8Error> for Error {
+  fn from(value: Utf8Error) -> Self {
+    Error::new(format!("UTF8 error: {}", value))
   }
 }

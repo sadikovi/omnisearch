@@ -1,5 +1,6 @@
 use std::path::Path;
 use std::sync::{mpsc, Arc};
+use std::str::from_utf8;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::thread;
 use std::time;
@@ -24,13 +25,24 @@ const CONTEXT_NUM_LINES: usize = 2;
 // Direct matcher to match as substring.
 #[derive(Clone, Debug)]
 struct DirectMatcher {
+  is_ascii: bool,
+  match_lowercase: bool,
   pattern: Vec<u8>
 }
 
 impl DirectMatcher {
   // Creates new direct matcher
-  pub fn new(pattern: &str) -> Self {
-    Self { pattern: pattern.as_bytes().to_vec() }
+  pub fn new(pattern: &str, case_smart: bool) -> Self {
+    let is_ascii = pattern.is_ascii();
+    // if case_smart is enabled, we need to check pattern to match like that.
+    // ASCII punctuation does not case.
+    let match_lowercase = case_smart &&
+      pattern.chars().all(|c| c.is_lowercase() || c.is_ascii_punctuation());
+    Self {
+      is_ascii: is_ascii,
+      match_lowercase: match_lowercase,
+      pattern: pattern.as_bytes().to_vec()
+    }
   }
 }
 
@@ -44,9 +56,26 @@ impl Matcher for DirectMatcher {
     if plen > hlen {
       return Ok(None);
     }
-    for i in 0..hlen - plen + 1 {
-      if &self.pattern[..] == &haystack[i..i + plen] {
-        return Ok(Some(Match::new(i, i+plen)))
+
+    if self.match_lowercase {
+      if self.is_ascii {
+        for i in 0..hlen - plen + 1 {
+          if self.pattern[..].eq_ignore_ascii_case(&haystack[i..i + plen]) {
+            return Ok(Some(Match::new(i, i + plen)))
+          }
+        }
+      } else {
+        let p = from_utf8(&self.pattern)?;
+        let h = from_utf8(haystack)?;
+        if let Some(start_pos) = h.find(p) {
+          return Ok(Some(Match::new(start_pos, start_pos + plen)));
+        }
+      }
+    } else {
+      for i in 0..hlen - plen + 1 {
+        if &self.pattern[..] == &haystack[i..i + plen] {
+          return Ok(Some(Match::new(i, i + plen)))
+        }
       }
     }
     Ok(None)
@@ -263,7 +292,7 @@ pub fn find(
         .build(params.pattern())?
     )
   } else {
-    MatcherSpec::direct(DirectMatcher::new(params.pattern()))
+    MatcherSpec::direct(DirectMatcher::new(params.pattern(), true))
   };
 
   let (fsx, frx) = mpsc::channel::<FileItem>();
