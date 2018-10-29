@@ -316,7 +316,14 @@ pub fn find(
   let duration = start_time.elapsed();
   let exec_time = duration.as_secs() as f64 + duration.subsec_nanos() as f64 * 1e-9;
 
-  Ok(SearchResult::new(exec_time, files, file_matches, content, content_matches))
+  Ok(SearchResult::new(
+    exec_time,
+    use_cache,
+    files,
+    file_matches,
+    content,
+    content_matches
+  ))
 }
 
 // Internal function to start search.

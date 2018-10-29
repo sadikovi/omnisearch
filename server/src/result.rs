@@ -175,6 +175,7 @@ impl Serialize for Matched {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SearchResult {
   time_sec: f64, // time taken to execute query
+  used_cache: bool, // whether or not cache was used for search
   files: Vec<FileItem>,
   file_matches: Matched,
   content: Vec<ContentItem>,
@@ -185,11 +186,12 @@ impl SearchResult {
   /// Creates a new search result.
   pub fn new(
     time_sec: f64,
+    used_cache: bool,
     files: Vec<FileItem>,
     file_matches: Matched,
     content: Vec<ContentItem>,
     content_matches: Matched
   ) -> Self {
-    Self { time_sec, files, file_matches, content, content_matches }
+    Self { time_sec, used_cache, files, file_matches, content, content_matches }
   }
 }

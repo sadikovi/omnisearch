@@ -440,9 +440,17 @@ pub fn search(
 
   if let Some(index) = index_opt {
     // Start search
+    let mut iter = index.entries().iter();
+    let tp = ThreadPool::new(DEFAULT_THREAD_POOL_SIZE);
+    while let Some((path_str, _)) = iter.next() {
+      let path_str = path_str.clone();
+      tp.execute(move || {
+        let path = Path::new(&path_str);
+      });
+    }
+    println!("{:?}", index.stats());
   }
-
-  unimplemented!();
+  Ok(())
 }
 
 pub fn periodic_refresh(cache: &SharedCache) -> ThreadPool {
