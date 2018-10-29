@@ -448,7 +448,7 @@ pub fn search(
         let path = Path::new(&path_str);
       });
     }
-    println!("{:?}", index.stats());
+    // println!("{:?}", index.stats());
   }
   Ok(())
 }
