@@ -16,15 +16,15 @@ use params;
 use result::*;
 
 // Maximum number of files we collect.
-const FILE_MAX_MATCHES: usize = 10;
+pub const FILE_MAX_MATCHES: usize = 10;
 // Maximum number of matches we collect.
-const CONTENT_MAX_MATCHES: usize = 100;
+pub const CONTENT_MAX_MATCHES: usize = 100;
 // Number of lines of context ot fetch.
 const CONTEXT_NUM_LINES: usize = 2;
 
 // Direct matcher to match as substring.
 #[derive(Clone, Debug)]
-struct DirectMatcher {
+pub struct DirectMatcher {
   is_ascii: bool,
   match_lowercase: bool,
   pattern: Vec<u8>
@@ -105,19 +105,19 @@ impl MatcherSpec {
 
   // Returns true if regex is set.
   #[inline]
-  fn is_regex(&self) -> bool {
+  pub fn is_regex(&self) -> bool {
     self.regex.is_some()
   }
 
   // Converts spec into RegexMatcher.
   #[inline]
-  fn as_regex(self) -> RegexMatcher {
+  pub fn as_regex(self) -> RegexMatcher {
     self.regex.unwrap()
   }
 
   // Converts spec into DirectMatcher.
   #[inline]
-  fn as_direct(self) -> DirectMatcher {
+  pub fn as_direct(self) -> DirectMatcher {
     self.direct.unwrap()
   }
 
@@ -133,7 +133,7 @@ impl MatcherSpec {
   }
 
   #[inline]
-  fn is_match(&self, haystack: &str) -> bool {
+  pub fn is_match(&self, haystack: &str) -> bool {
     if self.is_regex() {
       self.regex.as_ref().unwrap().is_match(haystack.as_bytes()).unwrap_or(false)
     } else {
@@ -144,7 +144,7 @@ impl MatcherSpec {
 
 // Sink implementation for search.
 #[derive(Clone)]
-struct Collector {
+pub struct Collector {
   sx: mpsc::Sender<ContentItem>,
   counter: Arc<AtomicUsize>,
   path: String,
@@ -260,8 +260,8 @@ pub fn find(
 ) -> Result<SearchResult, errors::Error> {
   let start_time = time::Instant::now();
 
-  let dir = params.dir().canonicalize()?;
-  let path = dir.as_path();
+  let path_buf = params.dir()?;
+  let path = path_buf.as_path();
   if !path.is_dir() {
     return err!("Path {} is not a directory", path.to_str().unwrap_or(""));
   }
@@ -415,10 +415,10 @@ fn search(
                 ext
               );
               if content_matcher.is_regex() {
-                let matcher = content_matcher.as_regex().clone();
+                let matcher = content_matcher.as_regex();
                 searcher.search_path(matcher, inode.path(), collector).unwrap();
               } else {
-                let matcher = content_matcher.as_direct().clone();
+                let matcher = content_matcher.as_direct();
                 searcher.search_path(matcher, inode.path(), collector).unwrap();
               }
             }

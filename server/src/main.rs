@@ -70,7 +70,7 @@ fn service_inner(req: Request<Body>, cache: cache2::SharedCache) -> BoxFuture {
           let body = chunk.iter().cloned().collect::<Vec<u8>>();
           let res = json::from_slice::<params::CacheParams>(&body)
             .map_err(|error| error.into())
-            .and_then(|params| cache2::update_cache(&cache, params.dir()));
+            .and_then(|params| cache2::update_cache(&cache, params.dir()?.as_path()));
           match res {
             Ok(_) => {
               let mut response = Response::new(Body::empty());

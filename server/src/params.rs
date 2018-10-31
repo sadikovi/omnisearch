@@ -1,4 +1,6 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
+
+use errors;
 
 /// Input struct that is deserialized from JSON payload.
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -11,8 +13,8 @@ pub struct QueryParams {
 
 impl QueryParams {
   /// Returns root directory.
-  pub fn dir(&self) -> &Path {
-    &Path::new(&self.dir)
+  pub fn dir(&self) -> Result<PathBuf, errors::Error> {
+    Path::new(&self.dir).canonicalize().map_err(|err| err.into())
   }
 
   /// Returns search pattern.
@@ -39,7 +41,7 @@ pub struct CacheParams {
 
 impl CacheParams {
   // Returns directory to cache.
-  pub fn dir(&self) -> &Path {
-    &Path::new(&self.dir)
+  pub fn dir(&self) -> Result<PathBuf, errors::Error> {
+    Path::new(&self.dir).canonicalize().map_err(|err| err.into())
   }
 }

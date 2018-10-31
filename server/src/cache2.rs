@@ -1,4 +1,3 @@
-use std::cmp;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
@@ -14,14 +13,14 @@ use grep::searcher::Searcher;
 use ext::{Extension, Extensions};
 use ignore::WalkBuilder;
 use result::{ContentItem, FileItem};
-use search::MatcherSpec;
+use search::{CONTENT_MAX_MATCHES, FILE_MAX_MATCHES, Collector, MatcherSpec};
 
 // Default hashmap capacity.
 const DEFAULT_HASH_MAP_CAPACITY: usize = 64;
 // Default thread pool size.
 const DEFAULT_THREAD_POOL_SIZE: usize = 4;
 // Min size in bytes to enable caching of the file.
-const MIN_BYTES_TO_CACHE: u64 = 10_000;
+const MIN_BYTES_TO_CACHE: u64 = 1_000;
 // Number of seconds after which trigger cache refresh.
 const CACHE_POLL_INTERVAL_SECS: u64 = 5;
 
@@ -453,11 +452,66 @@ pub fn search(
       let tp = ThreadPool::new(DEFAULT_THREAD_POOL_SIZE);
       for i in 0..splits.len() {
         let start = splits[i];
-        let end = if i < splits.len() - 1 { splits[i + 1] } else { splits.len() };
+        let end = if i < splits.len() - 1 { splits[i + 1] } else { arc.len() };
+
         let arc = arc.clone();
+        let fsx = fsx.clone();
+        let csx = csx.clone();
+        let mut searcher = searcher.clone();
+        let content_matcher = content_matcher.clone();
+        let file_counter = file_counter.clone();
+        let content_counter = content_counter.clone();
+        let ext_check = ext_check.clone();
+
         tp.execute(move || {
-          for (path_str, findex) in &arc[start..end] {
-            let path = Path::new(&path_str);
+          for (path_str, file_index) in &arc[start..end] {
+            let path = Path::new(path_str);
+            let fname = path.file_name().and_then(|os| os.to_str()).unwrap_or("");
+
+            let ext = path.extension()
+              .and_then(|os| os.to_str())
+              .unwrap_or("")
+              .parse::<Extension>()
+              .unwrap();
+
+            // Search if file name matches pattern.
+            if fname.len() > 0 && content_matcher.is_match(fname) {
+              if file_counter.fetch_add(1, Ordering::Relaxed) <= FILE_MAX_MATCHES {
+                let _ = fsx.send(FileItem::new(path_str.to_owned(), ext));
+              }
+            }
+
+            if ext_check.is_supported_extension(ext) {
+              if content_counter.load(Ordering::Relaxed) <= CONTENT_MAX_MATCHES {
+                let collector = Collector::new(
+                  csx.clone(),
+                  content_counter.clone(),
+                  path_str.to_owned(),
+                  content_matcher.clone(),
+                  ext
+                );
+                if content_matcher.is_regex() {
+                  let matcher = content_matcher.clone().as_regex();
+                  if let Some(idx) = file_index {
+                    searcher.search_slice(matcher, idx.content(), collector).unwrap();
+                  } else {
+                    searcher.search_path(matcher, path, collector).unwrap();
+                  }
+                } else {
+                  let matcher = content_matcher.clone().as_direct();
+                  if let Some(idx) = file_index {
+                    searcher.search_slice(matcher, idx.content(), collector).unwrap();
+                  } else {
+                    searcher.search_path(matcher, path, collector).unwrap();
+                  }
+                }
+              }
+            }
+
+            if file_counter.load(Ordering::Relaxed) > FILE_MAX_MATCHES &&
+                content_counter.load(Ordering::Relaxed) > CONTENT_MAX_MATCHES {
+              break;
+            }
           }
         });
       }
@@ -475,7 +529,9 @@ fn split<T>(slice: &[T], splits: usize) -> Vec<usize> {
     let mut left = slice.len() % splits;
     for i in 1..splits {
       buckets[i] = buckets[i - 1] + size + (if left > 0 { 1 } else { 0 });
-      left -= 1;
+      if left > 0 {
+        left -= 1;
+      }
     }
   }
   buckets
@@ -533,11 +589,14 @@ fn refresh_func(arc: SharedCache, path: &Path) -> Result<(), errors::Error> {
   while let Some(res) = walk.next() {
     if let Ok(entry) = res {
       if entry.path().is_file() {
-        let ext = entry.path().extension()
+        let path = entry.path();
+
+        let ext = path.extension()
           .and_then(|os| os.to_str())
           .unwrap_or("")
           .parse::<Extension>()
           .unwrap();
+
         if extensions.is_supported_extension(ext) {
           // Adds path to the file index.
           // Does not check if path already exists in the cache.

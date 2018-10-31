@@ -1,9 +1,8 @@
 #!/bin/bash
 
-PORT=62976
+curl -d "{\"dir\":\"/Users/sadikovi/developer/spark\",\"pattern\":\"os_supported\"}" -X POST http://127.0.0.1:49555/search
+curl -d "{\"dir\":\"/Users/sadikovi/developer/spark\",\"pattern\":\"os_supported\",\"use_cache\":true}" -X POST http://127.0.0.1:49555/search
 
-curl -d "{\"dir\":\"/Users/sadikovi/developer/omnisearch\",\"pattern\":\"os_supported\"}" -X POST http://127.0.0.1:$PORT/search
+curl -d "{\"dir\":\"/Users/sadikovi/developer/spark\"}" -X POST http://127.0.0.1:49555/cache/add
 
-curl -d "{\"dir\":\"/Users/sadikovi/developer/omnisearch\"}" -X POST http://127.0.0.1:$PORT/cache/add
-
-curl http://127.0.0.1:$PORT/cache/stats
+curl http://127.0.0.1:49555/cache/stats
