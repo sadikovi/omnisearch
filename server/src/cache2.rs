@@ -1,3 +1,4 @@
+use std::cmp;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
@@ -150,9 +151,15 @@ impl MemoryUsed for FileIndex {
 
 impl MemoryUsed for FileIndexTree {
   fn memory_used(&self) -> usize {
-    size_of::<FileIndexTree>() + self.entries.iter().fold(0, |n, (key, value)| {
-      n + key.memory_used() + value.memory_used()
-    })
+    let entries_size = match self {
+      FileIndexTree::Null(_) => 0,
+      FileIndexTree::List(_, ref vec) => {
+        vec.iter().fold(0, |n, (key, value)| {
+          n + key.memory_used() + value.memory_used()
+        })
+      }
+    };
+    size_of::<FileIndexTree>() + entries_size
   }
 }
 
@@ -232,58 +239,59 @@ impl FileIndexTreeStatistics {
 // In-memory append-only index of the project.
 // Keeps track of the list of files for the project and their corresponding file index,
 // if available.
-pub struct FileIndexTree {
-  txid: usize,
-  entries: HashMap<String, Option<FileIndex>>
+pub enum FileIndexTree {
+  Null(usize),
+  List(usize, Arc<Vec<(String, Option<FileIndex>)>>)
 }
 
 impl FileIndexTree {
-  // Creates new index tree.
-  pub fn new() -> Self {
-    Self {
-      txid: GLOBAL_INDEX_SEQ.fetch_add(1, Ordering::SeqCst),
-      entries: HashMap::with_capacity(DEFAULT_HASH_MAP_CAPACITY)
-    }
+  // Creates new index tree as list.
+  pub fn new(info: Vec<(String, Option<FileIndex>)>) -> Self {
+    FileIndexTree::List(GLOBAL_INDEX_SEQ.fetch_add(1, Ordering::SeqCst), Arc::new(info))
+  }
+
+  // Creates new index tree as no-op.
+  pub fn null() -> Self {
+    FileIndexTree::Null(GLOBAL_INDEX_SEQ.fetch_add(1, Ordering::SeqCst))
   }
 
   // Returns true, if tree is empty.
   pub fn is_empty(&self) -> bool {
-    self.entries.is_empty()
+    match self {
+      FileIndexTree::Null(_) => true,
+      FileIndexTree::List(_, vec) => vec.is_empty()
+    }
   }
 
   // Global monotonically inreasing index id.
   pub fn txid(&self) -> usize {
-    self.txid
-  }
-
-  // Adds path to the file index.
-  pub fn add(&mut self, path: &Path) -> Result<(), errors::Error> {
-    if let Some(p) = path.to_str() {
-      let mut file = File::open(path)?;
-      if file.metadata()?.len() >= MIN_BYTES_TO_CACHE {
-        let mut content = Vec::with_capacity(MIN_BYTES_TO_CACHE as usize);
-        file.read_to_end(&mut content)?;
-        self.entries.insert(p.to_owned(), Some(FileIndex::new(content)));
-      } else {
-        self.entries.insert(p.to_owned(), None);
-      }
-      Ok(())
-    } else {
-      err!("Failed to convert path {:?}", path)
+    match self {
+      FileIndexTree::Null(txid) => *txid,
+      FileIndexTree::List(txid, _) => *txid
     }
   }
 
   // Returns statistics for file index tree.
   pub fn stats(&self) -> FileIndexTreeStatistics {
-    let indexed = self.entries.values().filter(|entry| entry.is_some()).count();
-    let total = self.entries.len();
-    let fraction = if total == 0 { 0f32 } else { indexed as f32 / total as f32 };
-    FileIndexTreeStatistics::new(self.txid(), self.memory_used(), total, fraction)
+    match self {
+      FileIndexTree::Null(txid) => {
+        FileIndexTreeStatistics::new(*txid, self.memory_used(), 0, 0f32)
+      },
+      FileIndexTree::List(txid, ref vec) => {
+        let indexed = vec.iter().filter(|(_, entry)| entry.is_some()).count();
+        let total = vec.len();
+        let fraction = if total == 0 { 0f32 } else { indexed as f32 / total as f32 };
+        FileIndexTreeStatistics::new(*txid, self.memory_used(), total, fraction)
+      }
+    }
   }
 
   // List of entries.
-  pub fn entries(&self) -> &HashMap<String, Option<FileIndex>> {
-    &self.entries
+  pub fn entries(&self) -> Option<Arc<Vec<(String, Option<FileIndex>)>>> {
+    match self {
+      FileIndexTree::Null(_) => None,
+      FileIndexTree::List(_, vec) => Some(vec.clone())
+    }
   }
 }
 
@@ -333,7 +341,7 @@ impl Cache {
   // Adds index to the cache with deferred execution.
   // This does not block the thread to build an index.
   pub fn add_index(&mut self, path: &Path) -> Result<(), errors::Error> {
-    self.upsert_index(path, Arc::new(FileIndexTree::new()))
+    self.upsert_index(path, Arc::new(FileIndexTree::null()))
   }
 
   // Adds new index, or updates existing one.
@@ -374,7 +382,7 @@ impl Cache {
 
   // Removes index if it exists, otherwise is no-op.
   pub fn remove_index(&mut self, path: &Path) -> Result<(), errors::Error> {
-    self.upsert_index(path, Arc::new(FileIndexTree::new()))
+    self.upsert_index(path, Arc::new(FileIndexTree::null()))
   }
 
   // Returns list of paths in the cache.
@@ -438,19 +446,39 @@ pub fn search(
     arc.get_index(path)
   };
 
+  // Start search
   if let Some(index) = index_opt {
-    // Start search
-    let mut iter = index.entries().iter();
-    let tp = ThreadPool::new(DEFAULT_THREAD_POOL_SIZE);
-    while let Some((path_str, _)) = iter.next() {
-      let path_str = path_str.clone();
-      tp.execute(move || {
-        let path = Path::new(&path_str);
-      });
+    if let Some(arc) = index.entries() {
+      let splits = split(&arc, DEFAULT_THREAD_POOL_SIZE);
+      let tp = ThreadPool::new(DEFAULT_THREAD_POOL_SIZE);
+      for i in 0..splits.len() {
+        let start = splits[i];
+        let end = if i < splits.len() - 1 { splits[i + 1] } else { splits.len() };
+        let arc = arc.clone();
+        tp.execute(move || {
+          for (path_str, findex) in &arc[start..end] {
+            let path = Path::new(&path_str);
+          }
+        });
+      }
     }
-    // println!("{:?}", index.stats());
   }
   Ok(())
+}
+
+// Splits slice into number of splits of roughly equal length.
+// Returns vector with starting positions of each split.
+fn split<T>(slice: &[T], splits: usize) -> Vec<usize> {
+  let mut buckets = vec![0; splits];
+  if splits > 0 {
+    let size = slice.len() / splits;
+    let mut left = slice.len() % splits;
+    for i in 1..splits {
+      buckets[i] = buckets[i - 1] + size + (if left > 0 { 1 } else { 0 });
+      left -= 1;
+    }
+  }
+  buckets
 }
 
 pub fn periodic_refresh(cache: &SharedCache) -> ThreadPool {
@@ -501,7 +529,7 @@ fn refresh_func(arc: SharedCache, path: &Path) -> Result<(), errors::Error> {
   // Cache all extensions.
   let extensions = Extensions::all();
 
-  let mut tree = FileIndexTree::new();
+  let mut paths = Vec::with_capacity(DEFAULT_HASH_MAP_CAPACITY);
   while let Some(res) = walk.next() {
     if let Ok(entry) = res {
       if entry.path().is_file() {
@@ -511,13 +539,24 @@ fn refresh_func(arc: SharedCache, path: &Path) -> Result<(), errors::Error> {
           .parse::<Extension>()
           .unwrap();
         if extensions.is_supported_extension(ext) {
-          // build index
-          tree.add(entry.path())?;
+          // Adds path to the file index.
+          // Does not check if path already exists in the cache.
+          if let Some(p) = path.to_str() {
+            let mut file = File::open(path)?;
+            if file.metadata()?.len() >= MIN_BYTES_TO_CACHE {
+              let mut content = Vec::with_capacity(MIN_BYTES_TO_CACHE as usize);
+              file.read_to_end(&mut content)?;
+              paths.push((p.to_owned(), Some(FileIndex::new(content))));
+            } else {
+              paths.push((p.to_owned(), None));
+            }
+          }
         }
       }
     }
   }
 
+  let tree = FileIndexTree::new(paths);
   // Update index for a path.
   let mut cache = arc.lock()?;
   cache.upsert_index(path, Arc::new(tree))
