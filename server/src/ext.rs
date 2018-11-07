@@ -176,7 +176,8 @@ impl Extensions {
       Extension::TSX,
       Extension::XML,
       Extension::YAML,
-      Extension::YML
+      Extension::YML,
+      Extension::UNKNOWN
     ];
     Self::with_extensions(extensions)
   }
