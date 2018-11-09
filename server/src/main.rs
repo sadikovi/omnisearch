@@ -14,6 +14,7 @@ pub mod ext;
 pub mod params;
 pub mod result;
 pub mod search;
+pub mod suffix;
 
 use futures::{future, Stream};
 use hyper::{Body, Method, Request, Response, Server, StatusCode};
