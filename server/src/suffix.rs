@@ -107,7 +107,8 @@ impl Node {
 
 pub struct SuffixTree {
   tree_nodes: Vec<Node>,
-  root: usize
+  root: usize,
+  active_leaf: usize
 }
 
 impl SuffixTree {
@@ -117,7 +118,8 @@ impl SuffixTree {
     let tree_nodes = vec![node];
     Self {
       tree_nodes: tree_nodes,
-      root: 0
+      root: 0,
+      active_leaf: 0
     }
   }
 
@@ -131,9 +133,33 @@ impl SuffixTree {
     res
   }
 
+  /// Adds the specified `index` to the GST under the given `key`.
+  pub fn put(&mut self, key: &[u8], index: usize) {
+    self.active_leaf = self.root;
+    let mut s = self.root;
+
+    let mut text = Vec::new();
+    for i in 0..key.len() {
+      text.push(key[i]);
+      let node_id = self.update(s, &mut text, &key[i..], index);
+      s = self.canonize(node_id, &mut text);
+    }
+
+    if !self.get_node(self.active_leaf).has_suffix() &&
+        self.active_leaf != self.root && self.active_leaf != s {
+      let active_leaf_id = self.active_leaf;
+      self.get_node_mut(active_leaf_id).set_suffix(s);
+    }
+  }
+
   /// Returns reference for a node.
   fn get_node(&self, node_id: usize) -> &Node {
     &self.tree_nodes[node_id]
+  }
+
+  /// Returns mutable reference for a node.
+  fn get_node_mut(&mut self, node_id: usize) -> &mut Node {
+    self.tree_nodes.get_mut(node_id).expect("No node found")
   }
 
   /// Returns the tree node (if present) that corresponds to the given string.
@@ -187,5 +213,55 @@ impl SuffixTree {
         }
       }
     }
+  }
+
+  /// Updates the tree starting from inputNode and by adding stringPart.
+  ///
+  /// Returns a node_id for the string that has been added so far.
+  /// This means:
+  /// - the Node will be the Node that can be reached by the longest path string (S1)
+  ///   that can be obtained by concatenating consecutive edges in the tree and
+  ///   that is a substring of the string added so far to the tree.
+  /// - the String will be the remainder that must be added to S1 to get the string
+  ///   added so far.
+  fn update(&self, s: usize, part: &mut Vec<u8>, rest: &[u8], index: usize) -> usize {
+    unimplemented!();
+  }
+
+  /// Return a node_id (n) such that n is a farthest descendant of s (the input node)
+  /// that can be reached by following a path of edges denoting a prefix of inputstr and
+  /// remainder will be string that must be appended to the concatenation of labels from
+  /// s to n to get inpustr.
+  fn canonize(&self, s: usize, input: &mut Vec<u8>) -> usize {
+    let len = input.len();
+    if len == 0 {
+      return s;
+    }
+    let mut curr_node_id = s;
+    let mut idx = 0;
+    let mut g = self.get_node(curr_node_id).get_edge(input[idx]);
+    // Descend the tree as long as a proper label is found
+    while let Some(edge) = g {
+      let label = edge.get_label();
+      if len - idx >= label.len() && &input[idx..idx + label.len()] == &label[..] {
+        idx += label.len();
+        curr_node_id = edge.get_dest_id();
+        if idx < input.len() {
+          g = self.get_node(curr_node_id).get_edge(input[idx]);
+        }
+      } else {
+        break;
+      }
+    }
+
+    // Update the input to the latest slice.
+    if idx > 0 {
+      for i in idx..len {
+        input[i - idx] = input[i];
+      }
+      input.resize(len - idx, 0);
+    }
+
+    curr_node_id
   }
 }
