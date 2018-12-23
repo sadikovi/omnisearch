@@ -3,7 +3,9 @@
     "shift-cmd-space": "omnisearch:toggle"
   },
   "atom-text-editor.omnisearch": {
-    "enter": "omnisearch:search"
+    "enter": "omnisearch:search",
+    "up": "omnisearch:history-prev",
+    "down": "omnisearch:history-next"
   },
   "div.omnisearch": {
     "tab": "omnisearch:focus"
